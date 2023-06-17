@@ -4,13 +4,18 @@ import path from "path";
 
 const ACCEPTED_FILE_EXTENSIONS = [".mp4", ".mov", ".avi"];
 
-const TEMP_FOLDER = path.resolve("./temp");
-
 class VideoService {
   outputDir: string;
+  tempDir: string;
 
-  constructor(outputDir: string) {
+  constructor(outputDir: string, tempDir: string) {
     this.outputDir = outputDir;
+    this.tempDir = tempDir;
+
+    // make sure that outputDir exists
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
   }
 
   async getVideoFiles(): Promise<string[]> {
@@ -26,7 +31,7 @@ class VideoService {
 
   async resizeVideo(filePath: string): Promise<void> {
     // Check if the video resolution is different from 1920x1080
-    const tempFilePath = path.join(TEMP_FOLDER, path.basename(filePath));
+    const tempFilePath = path.join(this.tempDir, path.basename(filePath));
 
     let fps = await this.getFPS(filePath);
 

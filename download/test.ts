@@ -1,3 +1,3 @@
-import { handler } from "./index";
+import { lambdaHandler } from "./app";
 
-handler({});
+lambdaHandler({});

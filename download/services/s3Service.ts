@@ -35,6 +35,7 @@ class S3Service {
       Bucket: this.bucketName,
       Key: "output/" + path.basename(filePath),
       Body: fs.createReadStream(filePath),
+      ContentType: "video/mp4",
     });
 
     return s3Client.send(uploadCommand);

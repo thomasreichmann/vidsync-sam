@@ -1,4 +1,6 @@
 import "dotenv/config";
+import fs from "fs";
+import os from "os";
 import path from "path";
 import S3Service from "./services/s3Service";
 import VideoService from "./services/videoService";
@@ -6,13 +8,26 @@ import VideoService from "./services/videoService";
 const BUCKET_NAME = "vidsync-compiler";
 const BUCKET_FOLDER = "clips/";
 
-const OUTPUT_DIR = path.resolve("./clips");
+const IS_LAMBDA_ENVIRONMENT = !!process.env.AWS_EXECUTION_ENV;
+const ROOT_DIR = IS_LAMBDA_ENVIRONMENT ? os.tmpdir() : ".";
+
+const OUTPUT_DIR = path.join(ROOT_DIR, "clips");
+const TEMP_DIR = path.join(ROOT_DIR, "temp");
 
 const s3Service = new S3Service(BUCKET_NAME);
-const videoService = new VideoService(OUTPUT_DIR);
+const videoService = new VideoService(OUTPUT_DIR, TEMP_DIR);
 
-export const handler = async (_: any) => {
+export const lambdaHandler = async (_: any) => {
   try {
+    // Create temp and output directories
+    if (!fs.existsSync(TEMP_DIR)) {
+      fs.mkdirSync(TEMP_DIR);
+    }
+
+    if (!fs.existsSync(OUTPUT_DIR)) {
+      fs.mkdirSync(OUTPUT_DIR);
+    }
+
     // List all files in the bucket
     let response = await s3Service.list(BUCKET_FOLDER);
 
@@ -48,7 +63,16 @@ export const handler = async (_: any) => {
     console.time("total upload");
     await Promise.all(uploadPromises);
     console.timeEnd("total upload");
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "hello world ts changed",
+      }),
+    };
   } catch (err) {
-    console.log("Error", err);
+    // console.log("Error", err);
+
+    throw err;
   }
 };

@@ -2,3 +2,5 @@
 .env
 test.js
 .gitignore
+/clips
+/tests
