@@ -64,6 +64,7 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 # Outputs:
 # # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 # # Find out more about other implicit resources you can reference within SAM
