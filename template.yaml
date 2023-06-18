@@ -12,10 +12,11 @@ Globals:
     MemorySize: 1024
 
 Resources:
-  HelloWorldFunction:
+  DownloadVideo:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
       Policies:
         - S3CrudPolicy:
             BucketName: vidsync-compiler
@@ -25,28 +26,44 @@ Resources:
         HelloWorld:
           Type: Api
           Properties:
-            Path: /hello
+            Path: /video/download
             Method: get
     Metadata:
-      DockerTag: nodejs18.x-v1
-      DockerContext: ./hello-world
+      DockerTag: nodejs18.x-v2
+      DockerContext: ./download
       Dockerfile: Dockerfile
-  DownloadVideo:
+  ConcatenateVideo:
     Type: AWS::Serverless::Function
     Properties:
       PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Policies:
+        - S3CrudPolicy:
+            BucketName: vidsync-compiler
       Architectures:
         - x86_64
       Events:
         HelloWorld:
           Type: Api
           Properties:
-            Path: /video/download
+            Path: /video/concatenate
             Method: get
     Metadata:
-      DockerTag: nodejs18.x-v1
-      DockerContext: ./download
+      DockerTag: nodejs18.x-v2
+      DockerContext: ./concatenate
       Dockerfile: Dockerfile
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
 # Outputs:
 # # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 # # Find out more about other implicit resources you can reference within SAM
