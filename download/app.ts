@@ -2,8 +2,8 @@ import "dotenv/config";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import VideoService from "../shared/services/videoService";
 import S3Service from "./services/s3Service";
+import VideoService from "./services/videoService";
 
 const BUCKET_NAME = "vidsync-compiler";
 const BUCKET_FOLDER = "clips/";
@@ -68,6 +68,10 @@ export const lambdaHandler = async (_: any) => {
     await Promise.all(uploadPromises);
     times["total upload"] = Date.now() - uploadStartTime;
     console.log(`Upload time: ${times["total upload"]}ms`);
+
+    // Cleanup
+    fs.promises.rm(OUTPUT_DIR, { recursive: true, force: true });
+    fs.promises.rm(TEMP_DIR, { recursive: true, force: true });
 
     return {
       statusCode: 200,
