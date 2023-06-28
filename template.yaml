@@ -52,6 +52,26 @@ Resources:
       DockerTag: nodejs18.x-v2
       DockerContext: ./concatenate
       Dockerfile: Dockerfile
+  PreProcess:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Policies:
+        - S3CrudPolicy:
+            BucketName: vidsync-compiler
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /video/process
+            Method: get
+    Metadata:
+      DockerTag: nodejs18.x-v2
+      DockerContext: ./preProcess
+      Dockerfile: Dockerfile
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:

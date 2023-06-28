@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-old": "npm run build && npm run run",
-    "test": "ts-mocha **/*.spec.ts --timeout 20000",
+    "test": "npm run build && npm run run",
+    "mocha": "mocha tests/unit/",
     "build": "docker build -t video-pre-process .",
     "run": "docker run --env-file .env -p 9000:8080 video-pre-process:latest",
     "tsc": "tsc",
@@ -17,19 +17,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/chai": "^4.3.5",
     "@types/fluent-ffmpeg": "^2.1.21",
-    "@types/mocha": "^10.0.1",
-    "chai": "^4.3.7",
     "dotenv": "^16.1.4",
-    "mocha": "^10.2.0",
-    "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.345.0",
-    "@twurple/api": "^6.2.1",
-    "@twurple/auth": "^6.2.1",
     "fluent-ffmpeg": "^2.1.2",
     "typescript": "^5.1.3"
   }
