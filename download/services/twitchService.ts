@@ -1,14 +1,16 @@
-import { HelixClip } from "@twurple/api";
-import twurpleClient from "../lib/twurple";
+import { ApiClient, HelixClip } from "@twurple/api";
+import defaultTwurpleClient from "../lib/twurple";
 
 const MAX_VIDEOS = 5;
 
 class TwitchService {
+  constructor(private twurpleClient: ApiClient = defaultTwurpleClient) {}
+
   async getClips(gameId: string, quantity: number): Promise<HelixClip[]> {
     let now = new Date();
     let tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-    let request = twurpleClient.clips.getClipsForGamePaginated(gameId, {
+    let request = this.twurpleClient.clips.getClipsForGamePaginated(gameId, {
       startDate: now.toISOString(),
       endDate: tomorrow.toISOString(),
     });
