@@ -32,6 +32,7 @@
     "@twurple/api": "^6.2.1",
     "@twurple/auth": "^6.2.1",
     "fluent-ffmpeg": "^2.1.2",
+    "node-fetch": "^3.3.1",
     "typescript": "^5.1.3"
   }
 }
