@@ -34,6 +34,10 @@ class TwitchService {
     return result;
   }
 
+  generateDownloadUrl(clip: HelixClip): string {
+    return clip.thumbnailUrl.replace("-preview-480x272.jpg", ".mp4");
+  }
+
   private shouldContinueFetching(
     max: number,
     page: any[],

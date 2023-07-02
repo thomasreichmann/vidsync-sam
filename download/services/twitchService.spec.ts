@@ -34,6 +34,25 @@ describe("Twitch service tests", function () {
     twitchService = new TwitchService(instance(twurpleClientMock));
   });
 
+  it("should generate download url from clip", () => {
+    // Arrange
+    const clipId = "test-clip-id";
+    const clip = {
+      id: clipId,
+      thumbnailUrl:
+        "https://clips-media-assets2.twitch.tv/AT-cm%7C446951511-preview-480x272.jpg",
+    } as HelixClip;
+
+    // Act
+    const url = twitchService.generateDownloadUrl(clip);
+    // const downloadUrl = clip.thumbnailUrl.replace("-preview-480x272.jpg", ".mp4");
+
+    // Assert
+    expect(url).to.equal(
+      `https://clips-media-assets2.twitch.tv/AT-cm%7C446951511.mp4`
+    );
+  });
+
   it("should get clips", async () => {
     // Arrange
     const gameId = "test-game-id";
