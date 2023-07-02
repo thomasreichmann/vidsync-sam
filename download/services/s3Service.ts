@@ -2,21 +2,24 @@ import {
   GetObjectCommand,
   ListObjectsCommand,
   PutObjectCommand,
+  S3,
 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import stream from "stream";
 import util from "util";
-import s3Client from "../lib/s3";
+import defaultS3Client from "../lib/s3";
 
 const pipeline = util.promisify(stream.pipeline);
 
 class S3Service {
   bucketName: string;
+  s3Client: S3;
 
-  constructor(bucketName: string) {
+  constructor(bucketName: string, s3Client: S3 = defaultS3Client) {
     this.bucketName = bucketName;
+    this.s3Client = s3Client;
   }
 
   list(prefix: string) {
@@ -25,7 +28,7 @@ class S3Service {
       Prefix: prefix,
     });
 
-    return s3Client.send(command);
+    return this.s3Client.send(command);
   }
 
   upload(filePath: string) {
@@ -38,7 +41,7 @@ class S3Service {
       ContentType: "video/mp4",
     });
 
-    return s3Client.send(uploadCommand);
+    return this.s3Client.send(uploadCommand);
   }
 
   download(key: string, outputDir: string): Promise<void> {
@@ -51,7 +54,7 @@ class S3Service {
 
       // Download object from s3 and convert to a readable stream
       let objectStream = fs.ReadStream.from(
-        (await s3Client.send(download)).Body! as stream.Readable
+        (await this.s3Client.send(download)).Body! as stream.Readable
       );
 
       // make sure that outputDir exists
