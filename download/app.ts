@@ -2,7 +2,7 @@ import "dotenv/config";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import S3Service from "./services/s3Service";
+import S3Service from "./services/s3Service.js";
 
 const BUCKET_NAME = "vidsync-compiler";
 const BUCKET_FOLDER = "clips/";

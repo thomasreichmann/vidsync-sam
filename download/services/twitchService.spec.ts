@@ -4,7 +4,6 @@ import {
   HelixClipApi,
   HelixPaginatedRequest,
 } from "@twurple/api";
-import { HelixClipData } from "@twurple/api/lib/interfaces/endpoints/clip.external";
 import { expect } from "chai";
 import "dotenv/config";
 import { anything, capture, instance, mock, when } from "ts-mockito";
@@ -14,7 +13,7 @@ describe("Twitch service tests", function () {
   let twitchService: TwitchService;
   let twurpleClientMock: ApiClient;
   let clipsApiMock: HelixClipApi;
-  let requestMock: HelixPaginatedRequest<HelixClipData, HelixClip>;
+  let requestMock: HelixPaginatedRequest<any, HelixClip>;
 
   beforeEach(() => {
     // Mock the getClipsForGamePaginated function
@@ -24,7 +23,7 @@ describe("Twitch service tests", function () {
     twurpleClientMock = mock<ApiClient>();
 
     // Mock the request
-    requestMock = mock<HelixPaginatedRequest<HelixClipData, HelixClip>>();
+    requestMock = mock<HelixPaginatedRequest<any, HelixClip>>();
 
     when(twurpleClientMock.clips).thenReturn(instance(clipsApiMock));
     when(
