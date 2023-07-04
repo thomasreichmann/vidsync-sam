@@ -4,7 +4,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import fs from "fs";
 import Stream from "stream";
-import S3Service from "./s3Service.js";
+import S3Service from "../services/s3Service.js";
 
 chai.use(chaiAsPromised);
 const { expect } = chai;

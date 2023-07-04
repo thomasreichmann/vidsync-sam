@@ -7,7 +7,7 @@ import Stream, { PassThrough } from "stream";
 import DownloadService, {
   DownloadError,
   SaveError,
-} from "./downloadService.js";
+} from "../services/downloadService.js";
 
 chai.use(chaiAsPromised);
 const { expect } = chai;

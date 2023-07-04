@@ -13,7 +13,7 @@ import {
 } from "@typestrong/ts-mockito";
 import { expect } from "chai";
 import "dotenv/config";
-import TwitchService from "./twitchService.js";
+import TwitchService from "../services/twitchService.js";
 
 describe("Twitch service tests", function () {
   let twitchService: TwitchService;
