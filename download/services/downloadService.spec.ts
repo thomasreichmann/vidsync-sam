@@ -52,11 +52,7 @@ describe("DownloadService", () => {
     when(responseMock.ok).thenReturn(false);
     when(responseMock.statusText).thenReturn("Not Found");
 
-    try {
-      await downloadService.get(url);
-    } catch (err: any) {
-      expect(err.error).to.be.equal(DownloadError.error);
-    }
+    await expect(downloadService.get(url)).to.be.rejectedWith(DownloadError);
   });
 
   it("should save data to a file", async () => {
@@ -85,7 +81,7 @@ describe("DownloadService", () => {
     });
 
     when(fsMock.createWriteStream(anything())).thenReturn(
-      writeStreamMock as any
+      writeStreamMock as fs.WriteStream
     );
 
     // Emit an error from the mock write stream in the next event loop
