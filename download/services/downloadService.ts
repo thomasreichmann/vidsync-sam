@@ -1,15 +1,19 @@
 import defaultFs from "fs";
 import defaultFetch from "node-fetch";
-import BaseError from "../lib/baseError";
+import BaseError from "../lib/baseError.js";
 
 export default class DownloadService {
   constructor(
-    private fetch: typeof defaultFetch = defaultFetch,
+    private fetch: { fetch: typeof defaultFetch } = { fetch: defaultFetch },
     private fs: typeof defaultFs = defaultFs
   ) {}
 
   async get(url: string): Promise<NodeJS.ReadableStream> {
-    const response = await this.fetch(url);
+    console.log("test");
+
+    const response = await this.fetch.fetch(url);
+
+    console.log("got");
 
     if (!response.ok)
       throw new DownloadError(`unexpected response ${response.statusText}`);
@@ -32,13 +36,17 @@ export default class DownloadService {
 }
 
 export class SaveError extends BaseError {
+  static error = "save_error";
+
   constructor(cause: string) {
-    super("save_error", cause, true);
+    super(SaveError.error, cause, true);
   }
 }
 
 export class DownloadError extends BaseError {
+  static error = "download_error";
+
   constructor(cause: string) {
-    super("download_error", cause, true);
+    super(DownloadError.error, cause, true);
   }
 }

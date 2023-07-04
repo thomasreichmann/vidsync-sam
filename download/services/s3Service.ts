@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 import stream from "stream";
 import util from "util";
-import defaultS3Client from "../lib/s3";
+import defaultS3Client from "../lib/s3.js";
 
 const pipeline = util.promisify(stream.pipeline);
 

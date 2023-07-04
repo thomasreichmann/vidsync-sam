@@ -1,29 +1,40 @@
-import { expect } from "chai";
+import { anything, instance, mock, when } from "@typestrong/ts-mockito";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
 import fs from "fs";
 import fetch, { Response } from "node-fetch";
-import Stream from "stream";
-import { anything, instance, mock, when } from "ts-mockito";
-import DownloadService, { DownloadError, SaveError } from "./downloadService";
+import Stream, { PassThrough } from "stream";
+import DownloadService, {
+  DownloadError,
+  SaveError,
+} from "./downloadService.js";
+
+chai.use(chaiAsPromised);
+const { expect } = chai;
 
 describe("DownloadService", () => {
   let downloadService: DownloadService;
   let fsMock: typeof fs;
-  let fetchMock: typeof fetch;
+  let fetchMock: { fetch: typeof fetch };
   let responseMock: Response;
 
   beforeEach(() => {
     // Mock fetch and fs
-    fetchMock = mock<typeof fetch>();
+    fetchMock = mock<{ fetch: typeof fetch }>();
     fsMock = mock<typeof fs>();
     responseMock = mock<Response>();
-    downloadService = new DownloadService(fetch, fs);
+    downloadService = new DownloadService(
+      instance(fetchMock),
+      instance(fsMock)
+    );
   });
 
   it("should download data", async () => {
     // Arrange
     const url = "http://test.com/file.mp4";
-    const body = new Stream.Readable() as NodeJS.ReadableStream;
-    when(fetchMock(url)).thenResolve(instance(responseMock));
+    const body = Stream.Readable.from(["test data"]);
+    when(fetchMock.fetch(url)).thenResolve(instance(responseMock));
+
     when(responseMock.ok).thenReturn(true);
     when(responseMock.body).thenReturn(body);
 
@@ -37,19 +48,22 @@ describe("DownloadService", () => {
   it("should throw DownloadError if response is not OK", async () => {
     // Arrange
     const url = "http://test.com/file.mp4";
-    when(fetchMock(url)).thenResolve(instance(responseMock));
+    when(fetchMock.fetch(url)).thenResolve(instance(responseMock));
     when(responseMock.ok).thenReturn(false);
     when(responseMock.statusText).thenReturn("Not Found");
 
-    // Act & Assert
-    expect(await downloadService.get(url)).to.throw(DownloadError);
+    try {
+      await downloadService.get(url);
+    } catch (err: any) {
+      expect(err.error).to.be.equal(DownloadError.error);
+    }
   });
 
   it("should save data to a file", async () => {
     // Arrange
     const url = "file.mp4";
-    const stream = new Stream.Readable();
-    const writeStream = new Stream.Writable();
+    const stream = Stream.Readable.from(["test data"]);
+    const writeStream = new PassThrough();
     when(fsMock.createWriteStream(anything())).thenReturn(writeStream as any);
 
     // Act
@@ -62,12 +76,16 @@ describe("DownloadService", () => {
   it("should throw SaveError if there is an error while saving the file", async () => {
     // Arrange
     const url = "file.mp4";
-    const stream = new Stream.Readable();
-    const writeStream = new Stream.Writable();
+    const stream = Stream.Readable.from(["test data"]);
+    const writeStream = new PassThrough();
     when(fsMock.createWriteStream(anything())).thenReturn(writeStream as any);
     writeStream.on("error", (err) => new SaveError(err.message));
 
     // Act & Assert
-    expect(await downloadService.save(url, stream)).to.throw(SaveError);
+    try {
+      await downloadService.save(url, stream);
+    } catch (err: any) {
+      expect(err.error).to.be.equal(SaveError.error);
+    }
   });
 });

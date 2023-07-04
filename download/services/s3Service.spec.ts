@@ -1,7 +1,7 @@
 import { S3 } from "@aws-sdk/client-s3";
+import { anything, instance, mock, when } from "@typestrong/ts-mockito";
 import { expect } from "chai";
-import { anything, instance, mock, when } from "ts-mockito";
-import S3Service from "./s3Service";
+import S3Service from "./s3Service.js";
 
 describe("S3Service", () => {
   let s3Service: S3Service;

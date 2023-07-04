@@ -4,10 +4,16 @@ import {
   HelixClipApi,
   HelixPaginatedRequest,
 } from "@twurple/api";
+import {
+  anything,
+  capture,
+  instance,
+  mock,
+  when,
+} from "@typestrong/ts-mockito";
 import { expect } from "chai";
 import "dotenv/config";
-import { anything, capture, instance, mock, when } from "ts-mockito";
-import TwitchService from "./twitchService";
+import TwitchService from "./twitchService.js";
 
 describe("Twitch service tests", function () {
   let twitchService: TwitchService;
