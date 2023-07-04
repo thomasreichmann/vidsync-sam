@@ -76,16 +76,24 @@ describe("DownloadService", () => {
   it("should throw SaveError if there is an error while saving the file", async () => {
     // Arrange
     const url = "file.mp4";
+    const mockError = new Error("Stream error");
     const stream = Stream.Readable.from(["test data"]);
-    const writeStream = new PassThrough();
-    when(fsMock.createWriteStream(anything())).thenReturn(writeStream as any);
-    writeStream.on("error", (err) => new SaveError(err.message));
+    const writeStreamMock = new Stream.Writable({
+      write(_chunk, _encoding, callback) {
+        callback(); // Immediately indicate that the write is successful
+      },
+    });
+
+    when(fsMock.createWriteStream(anything())).thenReturn(
+      writeStreamMock as any
+    );
+
+    // Emit an error from the mock write stream in the next event loop
+    process.nextTick(() => writeStreamMock.emit("error", mockError));
 
     // Act & Assert
-    try {
-      await downloadService.save(url, stream);
-    } catch (err: any) {
-      expect(err.error).to.be.equal(SaveError.error);
-    }
+    await expect(downloadService.save(url, stream)).to.be.rejectedWith(
+      SaveError
+    );
   });
 });

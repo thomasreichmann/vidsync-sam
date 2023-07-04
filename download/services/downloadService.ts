@@ -9,11 +9,7 @@ export default class DownloadService {
   ) {}
 
   async get(url: string): Promise<NodeJS.ReadableStream> {
-    console.log("test");
-
     const response = await this.fetch.fetch(url);
-
-    console.log("got");
 
     if (!response.ok)
       throw new DownloadError(`unexpected response ${response.statusText}`);
@@ -26,11 +22,11 @@ export default class DownloadService {
   async save(url: string, stream: NodeJS.ReadableStream): Promise<string> {
     let file = this.fs.createWriteStream(url);
 
-    stream.pipe(file);
-
     return new Promise((resolve, reject) => {
-      file.on("finish", () => resolve(url));
-      file.on("error", (err: Error) => reject(new SaveError(err.message)));
+      stream
+        .pipe(file)
+        .on("error", (err: Error) => reject(new SaveError(err.message)))
+        .on("finish", () => resolve(url));
     });
   }
 }
