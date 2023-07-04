@@ -55,6 +55,16 @@ describe("DownloadService", () => {
     await expect(downloadService.get(url)).to.be.rejectedWith(DownloadError);
   });
 
+  it("should throw DownloadError if response body is not available", async () => {
+    // Arrange
+    const url = "http://test.com/file.mp4";
+    when(fetchMock.fetch(url)).thenResolve(instance(responseMock));
+    when(responseMock.ok).thenReturn(true);
+    when(responseMock.body).thenReturn(null);
+
+    await expect(downloadService.get(url)).to.be.rejectedWith(DownloadError);
+  });
+
   it("should save data to a file", async () => {
     // Arrange
     const url = "file.mp4";
@@ -74,11 +84,7 @@ describe("DownloadService", () => {
     const url = "file.mp4";
     const mockError = new Error("Stream error");
     const stream = Stream.Readable.from(["test data"]);
-    const writeStreamMock = new Stream.Writable({
-      write(_chunk, _encoding, callback) {
-        callback(); // Immediately indicate that the write is successful
-      },
-    });
+    const writeStreamMock = new Stream.Writable();
 
     when(fsMock.createWriteStream(anything())).thenReturn(
       writeStreamMock as fs.WriteStream

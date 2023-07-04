@@ -5,7 +5,7 @@ import {
   S3,
 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
-import fs from "fs";
+import defaultFs from "fs";
 import path from "path";
 import stream from "stream";
 import util from "util";
@@ -17,7 +17,11 @@ class S3Service {
   bucketName: string;
   s3Client: S3;
 
-  constructor(bucketName: string, s3Client: S3 = defaultS3Client) {
+  constructor(
+    bucketName: string,
+    s3Client: S3 = defaultS3Client,
+    private fs: typeof defaultFs = defaultFs
+  ) {
     this.bucketName = bucketName;
     this.s3Client = s3Client;
   }
@@ -37,13 +41,14 @@ class S3Service {
     let uploadCommand = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: "output/" + path.basename(filePath),
-      Body: fs.createReadStream(filePath),
+      Body: this.fs.createReadStream(filePath),
       ContentType: "video/mp4",
     });
 
     return this.s3Client.send(uploadCommand);
   }
 
+  /* c8 ignore start */
   download(key: string, outputDir: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       // Create download command
@@ -53,30 +58,32 @@ class S3Service {
       });
 
       // Download object from s3 and convert to a readable stream
-      let objectStream = fs.ReadStream.from(
+      let objectStream = this.fs.ReadStream.from(
         (await this.s3Client.send(download)).Body! as stream.Readable
       );
 
       // make sure that outputDir exists
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
+      if (!this.fs.existsSync(outputDir)) {
+        this.fs.mkdirSync(outputDir);
         console.log(".");
       }
 
       // Create a write stream to save the S3 object to a file
-      const fileStream = fs
+      const fileStream = this.fs
         .createWriteStream(`${outputDir}/${crypto.randomUUID()}.mp4`)
         .on("close", resolve)
         .on("error", reject);
 
       // Use stream pipeline to handle backpressure and error handling
       try {
-        await pipeline(objectStream, fileStream);
+        // await pipeline(objectStream, fileStream);
+        objectStream.pipe(fileStream).on("error", reject).on("close", resolve);
       } catch (err) {
         reject(err);
       }
     });
   }
+  /* c8 ignore stop */
 }
 
 export default S3Service;

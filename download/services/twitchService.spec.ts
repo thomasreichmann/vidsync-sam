@@ -101,7 +101,7 @@ describe("Twitch service tests", function () {
     expect(arg1).to.equal(gameId);
 
     // Check date range is as expected
-    expect(arg2?.startDate).to.exist;
-    expect(arg2?.endDate).to.exist;
+    expect(arg2!.startDate).to.exist;
+    expect(arg2!.endDate).to.exist;
   });
 });

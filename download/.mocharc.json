@@ -4,6 +4,10 @@
     "loader=ts-node/esm",
     "no-warnings=ExperimentalWarning"
   ],
+  "register": ["ts-node/register", "source-map-support/register"],
+  "exclude": ["**/node_modules/**"],
+  "recursive": true,
+  "color": true,
   "extension": ["ts"],
   "spec": "**/*.spec.ts"
 }
