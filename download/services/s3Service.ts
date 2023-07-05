@@ -6,12 +6,8 @@ import {
 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import defaultFs from "fs";
-import path from "path";
-import stream from "stream";
-import util from "util";
+import { default as Stream, default as stream } from "stream";
 import defaultS3Client from "../lib/s3.js";
-
-const pipeline = util.promisify(stream.pipeline);
 
 class S3Service {
   bucketName: string;
@@ -35,13 +31,15 @@ class S3Service {
     return this.s3Client.send(command);
   }
 
-  upload(filePath: string) {
-    console.time(`upload ${filePath}`);
+  upload(data: string | Stream.Readable, outputPath: string) {
+    const isStream = data instanceof Stream.Readable;
+    const body = isStream ? data : this.fs.createReadStream(data);
+
     // Upload to /output in s3
     let uploadCommand = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: "output/" + path.basename(filePath),
-      Body: this.fs.createReadStream(filePath),
+      Key: outputPath,
+      Body: body,
       ContentType: "video/mp4",
     });
 

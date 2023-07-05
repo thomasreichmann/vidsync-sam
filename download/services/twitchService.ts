@@ -1,5 +1,5 @@
 import { ApiClient, HelixClip } from "@twurple/api";
-import defaultTwurpleClient from "../lib/twurple";
+import defaultTwurpleClient from "../lib/twurple.js";
 
 const MAX_VIDEOS = 5;
 

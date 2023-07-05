@@ -49,7 +49,7 @@ describe("S3Service", () => {
     when(fsMock.createReadStream(filePath)).thenReturn(stubStream);
 
     // Act
-    const result = await s3Service.upload(filePath);
+    const result = await s3Service.upload(filePath, filePath);
 
     // Assert
     expect(result).to.deep.equal(mockResponse);
