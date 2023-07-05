@@ -31,9 +31,11 @@ class S3Service {
     return this.s3Client.send(command);
   }
 
-  upload(data: string | Stream.Readable, outputPath: string) {
+  async upload(data: string | Stream.Readable, outputPath: string) {
     const isStream = data instanceof Stream.Readable;
-    const body = isStream ? data : this.fs.createReadStream(data);
+    const body = isStream
+      ? await this.stream2buffer(data as Stream.Readable)
+      : this.fs.createReadStream(data);
 
     // Upload to /output in s3
     let uploadCommand = new PutObjectCommand({
@@ -79,6 +81,16 @@ class S3Service {
       } catch (err) {
         reject(err);
       }
+    });
+  }
+
+  private async stream2buffer(stream: Stream): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+      const _buf = Array<any>();
+
+      stream.on("data", (chunk) => _buf.push(chunk));
+      stream.on("end", () => resolve(Buffer.concat(_buf)));
+      stream.on("error", (err) => reject(`error converting stream - ${err}`));
     });
   }
   /* c8 ignore stop */
