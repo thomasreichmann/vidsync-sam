@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test-old": "npm run build && npm run run",
-    "test": "c8 mocha",
+    "test": "c8 -c .nycrc mocha",
     "build": "docker build -t video-pre-process .",
     "run": "docker run --env-file .env -p 9000:8080 video-pre-process:latest",
     "tsc": "tsc",
