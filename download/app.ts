@@ -22,7 +22,12 @@ const s3Service = new S3Service(BUCKET_NAME);
 const twitchService = new TwitchService();
 const downloadService = new DownloadService();
 
-export const lambdaHandler = async (_: any) => {
+interface LambdaEvent {
+  quantity: number;
+  gameId: string;
+}
+
+export const lambdaHandler = async (request: LambdaEvent) => {
   let times: { [key: string]: number } = {};
 
   try {
@@ -51,7 +56,7 @@ export const lambdaHandler = async (_: any) => {
       return s3Service.upload(stream as Stream.Readable, clipPath);
     });
 
-    await Promise.all(uploadPromises);
+    let result = await Promise.all(uploadPromises);
 
     // Cleanup
     fs.promises.rm(TEMP_DIR, { recursive: true, force: true });

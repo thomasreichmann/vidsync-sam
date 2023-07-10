@@ -9,6 +9,12 @@ import defaultFs from "fs";
 import { default as Stream, default as stream } from "stream";
 import defaultS3Client from "../lib/s3.js";
 
+interface UploadResult {
+  bucket: string;
+  path: string;
+  statusCode: number;
+}
+
 class S3Service {
   bucketName: string;
   s3Client: S3;
@@ -31,7 +37,10 @@ class S3Service {
     return this.s3Client.send(command);
   }
 
-  async upload(data: string | Stream.Readable, outputPath: string) {
+  async upload(
+    data: string | Stream.Readable,
+    outputPath: string
+  ): Promise<UploadResult> {
     const isStream = data instanceof Stream.Readable;
     const body = isStream
       ? await this.stream2buffer(data as Stream.Readable)
@@ -45,7 +54,13 @@ class S3Service {
       ContentType: "video/mp4",
     });
 
-    return this.s3Client.send(uploadCommand);
+    let result = await this.s3Client.send(uploadCommand);
+
+    return {
+      bucket: this.bucketName,
+      path: outputPath,
+      statusCode: result.$metadata.httpStatusCode!,
+    };
   }
 
   /* c8 ignore start */
