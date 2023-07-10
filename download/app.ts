@@ -15,20 +15,36 @@ const ROOT_DIR = IS_LAMBDA_ENVIRONMENT ? os.tmpdir() : ".";
 
 const TEMP_DIR = path.join(ROOT_DIR, "temp");
 
-const CLIP_QUANTITY = 10;
-const GAME_ID = "21779";
-
 const s3Service = new S3Service(BUCKET_NAME);
 const twitchService = new TwitchService();
 const downloadService = new DownloadService();
 
 interface LambdaEvent {
-  quantity: number;
-  gameId: string;
+  quantity?: number;
+  gameId?: string;
 }
 
-export const lambdaHandler = async (request: LambdaEvent) => {
-  let times: { [key: string]: number } = {};
+interface LambdaResponse {
+  statusCode: number;
+  body: string;
+}
+
+export const lambdaHandler = async (
+  request: LambdaEvent
+): Promise<LambdaResponse> => {
+  if (!request.quantity) {
+    return {
+      statusCode: 400,
+      body: "Missing quantity",
+    };
+  }
+
+  if (!request.gameId) {
+    return {
+      statusCode: 400,
+      body: "Missing gameId",
+    };
+  }
 
   try {
     // Create temp and output directories
@@ -37,7 +53,10 @@ export const lambdaHandler = async (request: LambdaEvent) => {
     }
 
     // Get clips for gameId
-    const clips = await twitchService.getClips(GAME_ID, CLIP_QUANTITY);
+    const clips = await twitchService.getClips(
+      request.gameId,
+      request.quantity
+    );
     const downloadUrls = clips.map((clip) =>
       twitchService.generateDownloadUrl(clip)
     );
@@ -63,13 +82,10 @@ export const lambdaHandler = async (request: LambdaEvent) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        message: "hello world ts changed",
-        times: times,
-      }),
+      body: JSON.stringify(result),
     };
   } catch (err) {
-    // console.log("Error", err);
+    console.log("Error", err);
 
     throw err;
   }
