@@ -30,7 +30,7 @@ Resources:
             Method: post
     Metadata:
       DockerTag: nodejs18.x-v2
-      DockerContext: ./download
+      DockerContext: ./functions/download
       Dockerfile: Dockerfile
   ConcatenateVideo:
     Type: AWS::Serverless::Function
@@ -50,7 +50,7 @@ Resources:
             Method: get
     Metadata:
       DockerTag: nodejs18.x-v2
-      DockerContext: ./concatenate
+      DockerContext: ./functions/concatenate
       Dockerfile: Dockerfile
   PreProcess:
     Type: AWS::Serverless::Function
@@ -70,7 +70,7 @@ Resources:
             Method: get
     Metadata:
       DockerTag: nodejs18.x-v2
-      DockerContext: ./preProcess
+      DockerContext: ./functions/preProcess
       Dockerfile: Dockerfile
   LambdaExecutionRole:
     Type: AWS::IAM::Role
