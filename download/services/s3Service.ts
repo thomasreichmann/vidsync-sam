@@ -9,9 +9,9 @@ import defaultFs from "fs";
 import { default as Stream, default as stream } from "stream";
 import defaultS3Client from "../lib/s3.js";
 
-interface UploadResult {
+export interface UploadResult {
   bucket: string;
-  path: string;
+  key: string;
   statusCode: number;
 }
 
@@ -58,7 +58,7 @@ class S3Service {
 
     return {
       bucket: this.bucketName,
-      path: outputPath,
+      key: outputPath,
       statusCode: result.$metadata.httpStatusCode!,
     };
   }

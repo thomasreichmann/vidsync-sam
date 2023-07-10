@@ -27,7 +27,7 @@ Resources:
           Type: Api
           Properties:
             Path: /video/download
-            Method: get
+            Method: post
     Metadata:
       DockerTag: nodejs18.x-v2
       DockerContext: ./download

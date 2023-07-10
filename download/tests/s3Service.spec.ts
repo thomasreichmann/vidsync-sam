@@ -4,7 +4,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import fs from "fs";
 import Stream from "stream";
-import S3Service from "../services/s3Service.js";
+import S3Service, { UploadResult } from "../services/s3Service.js";
 
 chai.use(chaiAsPromised);
 const { expect } = chai;
@@ -43,9 +43,9 @@ describe("S3Service", () => {
     // Arrange
     const filePath = "filePath";
 
-    const expectedServiceResponse = {
+    const expectedServiceResponse: UploadResult = {
       bucket: BUCKET_NAME,
-      path: filePath,
+      key: filePath,
       statusCode: 200,
     };
 
