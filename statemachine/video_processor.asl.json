@@ -1,0 +1,19 @@
+{
+  "Comment": "State machine for generating youtube videos from twitch clips",
+  "StartAt": "Download clips",
+  "States": {
+    "Download clips": {
+      "Type": "Task",
+      "Resource": "${StockCheckerFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 15,
+          "MaxAttempts": 5,
+          "BackoffRate": 1.5
+        }
+      ],
+      "End": true
+    }
+  }
+}
