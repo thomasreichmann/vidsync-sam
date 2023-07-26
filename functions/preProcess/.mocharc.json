@@ -1,0 +1,17 @@
+{
+  "node-option": [
+    "experimental-specifier-resolution=node",
+    "loader=ts-node/esm",
+    "no-warnings=ExperimentalWarning"
+  ],
+  "register": [
+    "ts-node/register",
+    "source-map-support/register",
+    "tsconfig-paths/register"
+  ],
+  "exclude": ["**/node_modules/**", "**/tests/integration/**"],
+  "recursive": true,
+  "color": true,
+  "extension": ["ts"],
+  "spec": "**/*.spec.ts"
+}

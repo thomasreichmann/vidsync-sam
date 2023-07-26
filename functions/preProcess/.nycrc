@@ -1,0 +1,10 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "extension": [".ts", ".tsx"],
+  "all": true,
+  "exclude": ["**/tests/**"],
+  "check-coverage": true,
+  "reporter": ["html", "lcov", "text", "text-summary"],
+  "report-dir": "coverage",
+  "exclude-after-remap": false
+}
