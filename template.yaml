@@ -71,12 +71,6 @@ Resources:
             BucketName: vidsync-compiler
       Architectures:
         - x86_64
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /video/process
-            Method: get
     Metadata:
       DockerTag: nodejs18.x-v2
       DockerContext: ./functions/preProcess

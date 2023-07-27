@@ -17,6 +17,14 @@ export default class DownloadService {
       throw new DownloadError(`Failed to download ${key} from s3`);
     }
   }
+
+  async upload(key: string, filePath: string): Promise<void> {
+    try {
+      await this.s3Service.upload(key, filePath);
+    } catch (err) {
+      throw new DownloadError(`Failed to upload ${key} to s3`);
+    }
+  }
 }
 
 export const DownloadError = createErrorType({ errorName: "download_error" });
