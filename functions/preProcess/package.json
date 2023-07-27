@@ -5,16 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test-docker": "npm run build && npm run run",
     "test": "mocha",
+    "test:integration": "mocha ./tests/integration/normalize.spec.ts",
     "test:coverage": "c8 -c .nycrc mocha",
-    "mocha": "mocha tests/unit/",
-    "build": "docker build -t video-pre-process .",
-    "run": "docker run --env-file .env -p 9000:8080 video-pre-process:latest",
     "tsc": "tsc",
-    "dev": "ts-node test.ts",
-    "stop-docker": "docker rm $(docker stop $(docker ps -a -q --filter ancestor=video-pre-process --format=\"{{.ID}}\"))",
-    "curl": "curl -XPOST \"http://localhost:9000/2015-03-31/functions/function/invocations\" -d '{\"test\": \"testValue\", \"videoId\": 123}'"
+    "dev": "ts-node test.ts"
   },
   "keywords": [],
   "author": "",
