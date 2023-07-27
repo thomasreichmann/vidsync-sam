@@ -1,3 +1,3 @@
-import { lambdaHandler } from "./app";
+import { lambdaHandler } from "./app.js";
 
 lambdaHandler({});

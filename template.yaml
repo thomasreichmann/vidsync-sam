@@ -12,29 +12,18 @@ Globals:
     MemorySize: 1024
 
 Resources:
-  StockTradingStateMachine:
+  VideoProcessingStateMachine:
     Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
     Properties:
       DefinitionUri: statemachine/video_processor.asl.json
       DefinitionSubstitutions:
         DownloadVideoFunctionArn: !GetAtt DownloadVideo.Arn
-        # DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
-        # DDBTable: !Ref TransactionTable
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /state/start
             Method: get
-      # Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
-      #   - LambdaInvokePolicy:
-      #       FunctionName: !Ref DownloadVideo
-      # - LambdaInvokePolicy:
-      #     FunctionName: !Ref StockSellerFunction
-      # - LambdaInvokePolicy:
-      #     FunctionName: !Ref StockBuyerFunction
-      # - DynamoDBWritePolicy:
-      #     TableName: !Ref TransactionTable
 
   DownloadVideo:
     Type: AWS::Serverless::Function
@@ -46,12 +35,6 @@ Resources:
             BucketName: vidsync-compiler
       Architectures:
         - x86_64
-      # Events:
-      #   HelloWorld:
-      #     Type: Api
-      #     Properties:
-      #       Path: /video/download
-      #       Method: post
     Metadata:
       DockerTag: nodejs18.x-v2
       DockerContext: ./functions/download
