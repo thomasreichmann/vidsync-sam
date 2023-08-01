@@ -3,7 +3,7 @@ FROM public.ecr.aws/lambda/nodejs:18
 
 # Installing necessary tools and downloading ffmpeg
 RUN yum install -y tar xz && \
-    curl -O https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    curl -O https://cdn.thomasar.dev/ffmpeg-release-amd64-static.tar.xz && \
     tar -xf ffmpeg-release-amd64-static.tar.xz && \
     rm ffmpeg-release-amd64-static.tar.xz && \
     mv ffmpeg-*-static/ffmpeg /usr/local/bin/ffmpeg && \
