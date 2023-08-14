@@ -1,7 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 import defaultFs from "fs";
-import path from "path";
 import { default as Stream, default as stream } from "stream";
 import defaultS3Client from "../lib/s3.js";
 
@@ -51,38 +50,41 @@ class S3Service {
   }
 
   /* c8 ignore start */
-  download(key: string, outputDir: string): Promise<string> {
-    return new Promise(async (resolve, reject) => {
+  async download(key: string, outputDir: string): Promise<string> {
+    try {
       // Create download command
       let download = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      // Download object from s3 and convert to a readable stream
-      let objectStream = this.fs.ReadStream.from(
-        (await this.s3Client.send(download)).Body! as stream.Readable
+      // Download object from S3
+      const objectData = await this.s3Client.send(download);
+      const objectStream = this.fs.ReadStream.from(
+        objectData.Body as stream.Readable
       );
 
-      // make sure that outputDir exists
+      // Ensure outputDir exists
       if (!this.fs.existsSync(outputDir)) {
         this.fs.mkdirSync(outputDir);
         console.log(".");
       }
 
-      // Create a write stream to save the S3 object to a file
-      const fileStream = this.fs
-        .createWriteStream(`${outputDir}/${crypto.randomUUID()}.mp4`)
-        .on("close", resolve)
-        .on("error", reject);
+      // Create a file path
+      const filePath = `${outputDir}/${crypto.randomUUID()}.mp4`;
 
-      try {
-        objectStream.pipe(fileStream).on("error", reject).on("close", resolve);
-        resolve(path.join(outputDir, key));
-      } catch (err) {
-        reject(err);
-      }
-    });
+      // Return a promise that resolves or rejects based on the stream's finish or error events
+      return new Promise((resolve, reject) => {
+        const fileStream = this.fs
+          .createWriteStream(filePath)
+          .on("finish", () => resolve(filePath))
+          .on("error", reject);
+
+        objectStream.pipe(fileStream).on("error", reject);
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   private async stream2buffer(stream: Stream): Promise<Buffer> {

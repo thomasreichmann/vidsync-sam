@@ -36,7 +36,6 @@ Resources:
       Architectures:
         - x86_64
     Metadata:
-      DockerTag: nodejs18.x-v2
       DockerContext: ./functions/download
       Dockerfile: Dockerfile
 
@@ -57,7 +56,6 @@ Resources:
             Path: /video/concatenate
             Method: get
     Metadata:
-      DockerTag: nodejs18.x-v2
       DockerContext: ./functions/concatenate
       Dockerfile: Dockerfile
 
@@ -72,7 +70,6 @@ Resources:
       Architectures:
         - x86_64
     Metadata:
-      DockerTag: nodejs18.x-v2
       DockerContext: ./functions/preProcess
       Dockerfile: Dockerfile
   LambdaExecutionRole:

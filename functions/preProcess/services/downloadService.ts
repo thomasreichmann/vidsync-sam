@@ -1,7 +1,7 @@
 import { createErrorType } from "../lib/baseError.js";
 import S3Service from "./s3Service.js";
 
-const BUCKET_NAME = "vidsync";
+const BUCKET_NAME = "vidsync-compiler";
 
 export default class DownloadService {
   s3Service: S3Service;
@@ -20,7 +20,7 @@ export default class DownloadService {
 
   async upload(key: string, filePath: string): Promise<void> {
     try {
-      await this.s3Service.upload(key, filePath);
+      await this.s3Service.upload(filePath, key);
     } catch (err) {
       throw new DownloadError(`Failed to upload ${key} to s3`);
     }

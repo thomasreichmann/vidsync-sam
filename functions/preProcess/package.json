@@ -9,7 +9,7 @@
     "test:integration": "mocha ./tests/integration/normalize.spec.ts",
     "test:coverage": "c8 -c .nycrc mocha",
     "tsc": "tsc",
-    "dev": "ts-node test.ts"
+    "dev": "ts-node --esm invoke.dev.ts"
   },
   "keywords": [],
   "author": "",

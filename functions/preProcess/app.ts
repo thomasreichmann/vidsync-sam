@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Handler } from "aws-lambda";
+import { Handler } from "aws-lambda";
 import "dotenv/config";
 import fs from "fs";
 import os from "os";
@@ -15,7 +15,7 @@ const TEMP_DIR = path.join(ROOT_DIR, "temp");
 const downloadService = new DownloadService();
 const videoService = new VideoService();
 
-interface ProcessRequest {
+export interface ProcessRequest {
   bucket?: string;
   key?: string;
 }
@@ -25,13 +25,14 @@ interface LambdaResponse {
   body: string;
 }
 
-export const lambdaHandler: Handler = async (
-  event: APIGatewayProxyEvent
-): Promise<LambdaResponse> => {
-  const request: ProcessRequest = JSON.parse(event.body || "{}");
+export const lambdaHandler: Handler = async (event: {
+  body: ProcessRequest;
+}): Promise<LambdaResponse> => {
+  console.log("Received event:", JSON.stringify(event, null, 2));
+  const request = event.body as ProcessRequest;
 
   if (!request.bucket) {
-    console.log("Bad request: missing quantity");
+    console.log("Bad request: missing bucket name");
     return {
       statusCode: 400,
       body: "Missing bucket name",
@@ -39,7 +40,7 @@ export const lambdaHandler: Handler = async (
   }
 
   if (!request.key) {
-    console.log("Bad request: missing gameId");
+    console.log("Bad request: missing key");
     return {
       statusCode: 400,
       body: "Missing key",
@@ -56,9 +57,11 @@ export const lambdaHandler: Handler = async (
   }
 
   let inputPath = await downloadService.download(request.key, TEMP_DIR);
-  let outputPath = path.join(OUTPUT_DIR, request.key);
+  // let outputPath = path.join(OUTPUT_DIR, request.key);
 
-  let outputFile = await videoService.normalize(inputPath, outputPath);
+  console.log(inputPath);
+
+  let outputFile = await videoService.normalize(inputPath, OUTPUT_DIR);
 
   // Extract directory and filename from the original key
   const dirName = path.dirname(request.key);
@@ -70,6 +73,14 @@ export const lambdaHandler: Handler = async (
 
   // Upload using the new key
   await downloadService.upload(newKey, outputFile);
+
+  // Cleanup
+  console.log("Cleaning up temp and clips directories...");
+  await Promise.all([
+    fs.promises.rm(TEMP_DIR, { recursive: true, force: true }),
+    fs.promises.rm(OUTPUT_DIR, { recursive: true, force: true }),
+  ]);
+  console.log("Cleanup complete");
 
   return {
     statusCode: 200,

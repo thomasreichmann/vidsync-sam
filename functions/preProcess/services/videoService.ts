@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Ffmpeg, { FfmpegCommand, FfprobeData } from "fluent-ffmpeg";
 import { promisify } from "util";
 
@@ -10,8 +11,9 @@ export default class VideoService {
     this.ffprobe = promisify(ffmpeg.ffprobe);
   }
 
-  async normalize(inputPath: string, outputPath: string): Promise<string> {
+  async normalize(inputPath: string, outputDir: string): Promise<string> {
     let fps = await this.getFPS(inputPath);
+    const outputPath = `${outputDir}/${crypto.randomUUID()}.mp4`;
 
     const outputOptions =
       fps < 60 ? "-vf scale=1920:1080,fps=fps=60" : "-vf scale=1920:1080";
