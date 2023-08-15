@@ -21,7 +21,7 @@ const s3Service = new S3Service(BUCKET_NAME);
 const twitchService = new TwitchService();
 const downloadService = new DownloadService();
 
-interface DownloadRequest {
+export interface DownloadRequest {
   quantity?: number;
   gameId?: string;
 }
@@ -29,13 +29,9 @@ interface DownloadRequest {
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
 export const lambdaHandler: Handler = async (
-  event: {
-    body: DownloadRequest;
-  },
-  context
+  request: DownloadRequest
 ): Promise<string[]> => {
-  const request = event.body as DownloadRequest;
-  console.log("Received request:", request, event, context);
+  console.log("Received request:", request);
 
   if (!request.quantity) throw new BadRequestError("Missing quantity");
   if (!request.gameId) throw new BadRequestError("Missing gameId");
@@ -49,7 +45,10 @@ export const lambdaHandler: Handler = async (
   // Get clips for gameId
   console.log("Getting clips for gameId:", request.gameId);
   const clips = await twitchService.getClips(request.gameId, request.quantity);
-  console.log("Clips retrieved:", clips);
+  console.log(
+    "Clips retrieved:",
+    clips.map((c) => c.title)
+  );
 
   const downloadUrls = clips.map((clip) =>
     twitchService.generateDownloadUrl(clip)
@@ -68,7 +67,7 @@ export const lambdaHandler: Handler = async (
   const uploadPromises = clipStreams.map((stream, index) => {
     const clip = clips[index];
     const clipName = clip.id;
-    const clipPath = path.join(BUCKET_FOLDER, clipName, ".mp4");
+    const clipPath = path.join(BUCKET_FOLDER, `${clipName}.mp4`);
 
     return s3Service.upload(stream as Stream.Readable, clipPath);
   });

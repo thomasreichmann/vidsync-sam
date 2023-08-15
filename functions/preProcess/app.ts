@@ -23,11 +23,10 @@ export interface ProcessRequest {
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
-export const lambdaHandler: Handler = async (event: {
-  body: ProcessRequest;
-}): Promise<string> => {
-  console.log("Received event:", JSON.stringify(event, null, 2));
-  const request = event.body as ProcessRequest;
+export const lambdaHandler: Handler = async (
+  request: ProcessRequest
+): Promise<string> => {
+  console.log("Received event:", request);
 
   if (!request.bucket) throw new BadRequestError("Missing bucket name");
   if (!request.key) throw new BadRequestError("Missing key");

@@ -1,18 +1,41 @@
 {
-  "Comment": "State machine for generating youtube videos from twitch clips",
-  "StartAt": "Download clips",
+  "Comment": "Video processing state machine",
+  "StartAt": "Download",
   "States": {
-    "Download clips": {
+    "Download": {
       "Type": "Task",
       "Resource": "${DownloadVideoFunctionArn}",
-      "Retry": [
-        {
-          "ErrorEquals": ["States.TaskFailed"],
-          "IntervalSeconds": 15,
-          "MaxAttempts": 5,
-          "BackoffRate": 1.5
+      "Parameters": {
+        "quantity.$": "$.quantity",
+        "gameId.$": "$.gameId"
+      },
+      "Next": "PreProcess"
+    },
+    "PreProcess": {
+      "Type": "Map",
+      "Iterator": {
+        "StartAt": "CallPreProcess",
+        "States": {
+          "CallPreProcess": {
+            "Type": "Task",
+            "Resource": "${PreProcessFunctionArn}",
+            "Parameters": {
+              "key.$": "$",
+              "bucket.$": "$$.Execution.Input.bucket"
+            },
+            "End": true
+          }
         }
-      ],
+      },
+      "Next": "Concatenate"
+    },
+    "Concatenate": {
+      "Type": "Task",
+      "Resource": "${ConcatenateVideoFunctionArn}",
+      "Parameters": {
+        "bucket.$": "$$.Execution.Input.bucket",
+        "keys.$": "$"
+      },
       "End": true
     }
   }

@@ -18,6 +18,8 @@ Resources:
       DefinitionUri: statemachine/video_processor.asl.json
       DefinitionSubstitutions:
         DownloadVideoFunctionArn: !GetAtt DownloadVideo.Arn
+        ConcatenateVideoFunctionArn: !GetAtt ConcatenateVideo.Arn
+        PreProcessFunctionArn: !GetAtt PreProcess.Arn
       Role: !GetAtt VideoProcessingStateMachineRole.Arn
       Events:
         ApiEvent:
