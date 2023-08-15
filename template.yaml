@@ -49,12 +49,6 @@ Resources:
             BucketName: vidsync-compiler
       Architectures:
         - x86_64
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            Path: /video/concatenate
-            Method: get
     Metadata:
       DockerContext: ./functions/concatenate
       Dockerfile: Dockerfile
@@ -72,6 +66,7 @@ Resources:
     Metadata:
       DockerContext: ./functions/preProcess
       Dockerfile: Dockerfile
+
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:

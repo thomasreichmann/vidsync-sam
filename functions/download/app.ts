@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, Handler } from "aws-lambda";
+import { Handler } from "aws-lambda";
 import "dotenv/config";
 import fs from "fs";
 import os from "os";
@@ -20,7 +20,7 @@ const s3Service = new S3Service(BUCKET_NAME);
 const twitchService = new TwitchService();
 const downloadService = new DownloadService();
 
-interface LambdaEvent {
+interface DownloadRequest {
   quantity?: number;
   gameId?: string;
 }
@@ -30,10 +30,12 @@ interface LambdaResponse {
   body: string;
 }
 export const lambdaHandler: Handler = async (
-  event: APIGatewayProxyEvent,
+  event: {
+    body: DownloadRequest;
+  },
   context
 ): Promise<LambdaResponse> => {
-  const request: LambdaEvent = JSON.parse(event.body || "{}");
+  const request = event.body as DownloadRequest;
   console.log("Received request:", request, event, context);
 
   if (!request.quantity) {
