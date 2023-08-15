@@ -23,13 +23,26 @@ const context = {
   },
 };
 
+const KEYS = [
+  "clips/LuckyTentativeMouseSoBayed-ancAAaStdvlGmwRY",
+  "clips/BashfulStormySangYouDontSay-8AqKsS3HgbU6wsKd",
+  "clips/AgreeableInnocentShingleNerfBlueBlaster-OuKJyOOe-HKwc5IE",
+  "clips/SaltyPlainLarkCharlietheUnicorn-XbEnVyts4W_4T5xX",
+  "clips/DignifiedGloriousDumplingsDxAbomb-0PtY8gscPTsKCcPw",
+];
+
+const NORMALIZED_KEYS = [
+  "clips/normalized_LuckyTentativeMouseSoBayed-ancAAaStdvlGmwRY",
+  "clips/normalized_BashfulStormySangYouDontSay-8AqKsS3HgbU6wsKd",
+  "clips/normalized_AgreeableInnocentShingleNerfBlueBlaster-OuKJyOOe-HKwc5IE",
+  "clips/normalized_SaltyPlainLarkCharlietheUnicorn-XbEnVyts4W_4T5xX",
+  "clips/normalized_DignifiedGloriousDumplingsDxAbomb-0PtY8gscPTsKCcPw",
+];
+
 const event: { body: ProcessRequest } = {
   body: {
     bucket: "vidsync-compiler",
-    keys: [
-      "clips/normalized_CuriousScaryQueleaOneHand-_kDzkCXOh8naOA0m.mp4",
-      "clips/EnergeticConcernedPistachioCclamChamp-UZu7-A7V0aygKVJ-.mp4",
-    ],
+    keys: KEYS,
   },
 };
 

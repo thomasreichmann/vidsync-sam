@@ -3,6 +3,7 @@ import "dotenv/config";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { createErrorType } from "./lib/baseError.js";
 import DownloadService from "./services/downloadService.js";
 import VideoService from "./services/videoService.js";
 
@@ -20,32 +21,16 @@ export interface ProcessRequest {
   key?: string;
 }
 
-interface LambdaResponse {
-  statusCode: number;
-  body: string;
-}
+const BadRequestError = createErrorType({ errorName: "bad-request" });
 
 export const lambdaHandler: Handler = async (event: {
   body: ProcessRequest;
-}): Promise<LambdaResponse> => {
+}): Promise<string> => {
   console.log("Received event:", JSON.stringify(event, null, 2));
   const request = event.body as ProcessRequest;
 
-  if (!request.bucket) {
-    console.log("Bad request: missing bucket name");
-    return {
-      statusCode: 400,
-      body: "Missing bucket name",
-    };
-  }
-
-  if (!request.key) {
-    console.log("Bad request: missing key");
-    return {
-      statusCode: 400,
-      body: "Missing key",
-    };
-  }
+  if (!request.bucket) throw new BadRequestError("Missing bucket name");
+  if (!request.key) throw new BadRequestError("Missing key");
 
   // Create temp and output directories
   if (!fs.existsSync(TEMP_DIR)) {
@@ -56,11 +41,12 @@ export const lambdaHandler: Handler = async (event: {
     fs.mkdirSync(OUTPUT_DIR);
   }
 
+  // Download the file to the temp directory
+  console.log("Downloading file...");
   let inputPath = await downloadService.download(request.key, TEMP_DIR);
-  // let outputPath = path.join(OUTPUT_DIR, request.key);
 
-  console.log(inputPath);
-
+  // Normalize the video and save it to the output directory
+  console.log("Normalizing video...");
   let outputFile = await videoService.normalize(inputPath, OUTPUT_DIR);
 
   // Extract directory and filename from the original key
@@ -72,6 +58,7 @@ export const lambdaHandler: Handler = async (event: {
   const newKey = path.join(dirName, newFileName);
 
   // Upload using the new key
+  console.log("Uploading file...");
   await downloadService.upload(newKey, outputFile);
 
   // Cleanup
@@ -82,10 +69,5 @@ export const lambdaHandler: Handler = async (event: {
   ]);
   console.log("Cleanup complete");
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      newKey,
-    }),
-  };
+  return newKey;
 };

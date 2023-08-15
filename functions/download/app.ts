@@ -4,6 +4,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import Stream from "stream";
+import { createErrorType } from "./lib/baseError.js";
 import DownloadService from "./services/downloadService.js";
 import S3Service from "./services/s3Service.js";
 import TwitchService from "./services/twitchService.js";
@@ -25,86 +26,60 @@ interface DownloadRequest {
   gameId?: string;
 }
 
-interface LambdaResponse {
-  statusCode: number;
-  body: string;
-}
+const BadRequestError = createErrorType({ errorName: "bad-request" });
+
 export const lambdaHandler: Handler = async (
   event: {
     body: DownloadRequest;
   },
   context
-): Promise<LambdaResponse> => {
+): Promise<string[]> => {
   const request = event.body as DownloadRequest;
   console.log("Received request:", request, event, context);
 
-  if (!request.quantity) {
-    console.log("Bad request: missing quantity");
-    return {
-      statusCode: 400,
-      body: "Missing quantity",
-    };
+  if (!request.quantity) throw new BadRequestError("Missing quantity");
+  if (!request.gameId) throw new BadRequestError("Missing gameId");
+
+  // Create temp and output directories
+  if (!fs.existsSync(TEMP_DIR)) {
+    fs.mkdirSync(TEMP_DIR);
+    console.log("Temp directory created:", TEMP_DIR);
   }
 
-  if (!request.gameId) {
-    console.log("Bad request: missing gameId");
-    return {
-      statusCode: 400,
-      body: "Missing gameId",
-    };
-  }
+  // Get clips for gameId
+  console.log("Getting clips for gameId:", request.gameId);
+  const clips = await twitchService.getClips(request.gameId, request.quantity);
+  console.log("Clips retrieved:", clips);
 
-  try {
-    // Create temp and output directories
-    if (!fs.existsSync(TEMP_DIR)) {
-      fs.mkdirSync(TEMP_DIR);
-      console.log("Temp directory created:", TEMP_DIR);
-    }
+  const downloadUrls = clips.map((clip) =>
+    twitchService.generateDownloadUrl(clip)
+  );
+  console.log("Download URLs generated:", downloadUrls);
 
-    // Get clips for gameId
-    console.log("Getting clips for gameId:", request.gameId);
-    const clips = await twitchService.getClips(
-      request.gameId,
-      request.quantity
-    );
-    console.log("Clips retrieved:", clips);
+  // Download clips
+  console.log("Downloading clips...");
+  const clipStreams = await Promise.all(
+    downloadUrls.map((url) => downloadService.get(url))
+  );
+  console.log("Clips downloaded");
 
-    const downloadUrls = clips.map((clip) =>
-      twitchService.generateDownloadUrl(clip)
-    );
-    console.log("Download URLs generated:", downloadUrls);
+  // Upload clips to S3
+  console.log("Uploading clips to S3...");
+  const uploadPromises = clipStreams.map((stream, index) => {
+    const clip = clips[index];
+    const clipName = clip.id;
+    const clipPath = path.join(BUCKET_FOLDER, clipName, ".mp4");
 
-    // Download clips
-    console.log("Downloading clips...");
-    const clipStreams = await Promise.all(
-      downloadUrls.map((url) => downloadService.get(url))
-    );
-    console.log("Clips downloaded");
+    return s3Service.upload(stream as Stream.Readable, clipPath);
+  });
 
-    // Upload clips to S3
-    console.log("Uploading clips to S3...");
-    const uploadPromises = clipStreams.map((stream, index) => {
-      const clip = clips[index];
-      const clipName = clip.id;
-      const clipPath = path.join(BUCKET_FOLDER, clipName);
+  let result = await Promise.all(uploadPromises);
+  console.log("Upload completed:", result);
 
-      return s3Service.upload(stream as Stream.Readable, clipPath);
-    });
+  // Cleanup
+  console.log("Cleaning up temp directory...");
+  fs.promises.rm(TEMP_DIR, { recursive: true, force: true });
+  console.log("Cleanup complete");
 
-    let result = await Promise.all(uploadPromises);
-    console.log("Upload completed:", result);
-
-    // Cleanup
-    console.log("Cleaning up temp directory...");
-    fs.promises.rm(TEMP_DIR, { recursive: true, force: true });
-    console.log("Cleanup complete");
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result),
-    };
-  } catch (err) {
-    console.log("Error", err);
-    throw err;
-  }
+  return result.map((uploadResult) => uploadResult.key);
 };

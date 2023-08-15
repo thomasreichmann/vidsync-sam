@@ -3,6 +3,7 @@ import "dotenv/config";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { createErrorType } from "./lib/baseError.js";
 import S3Service from "./services/s3Service.js";
 import VideoService from "./services/videoService.js";
 
@@ -17,32 +18,16 @@ export interface ProcessRequest {
   keys?: string[];
 }
 
-interface LambdaResponse {
-  statusCode: number;
-  body: string;
-}
+const BadRequestError = createErrorType({ errorName: "bad-request" });
 
 export const lambdaHandler: Handler = async (event: {
   body: ProcessRequest;
-}): Promise<LambdaResponse> => {
+}): Promise<string> => {
   console.log("Received event:", JSON.stringify(event, null, 2));
   const request = event.body as ProcessRequest;
 
-  if (!request.bucket) {
-    console.log("Bad request: missing bucket name");
-    return {
-      statusCode: 400,
-      body: "Missing bucket name",
-    };
-  }
-
-  if (!request.keys) {
-    console.log("Bad request: missing key");
-    return {
-      statusCode: 400,
-      body: "Missing key",
-    };
-  }
+  if (!request.bucket) throw new BadRequestError("Missing bucket");
+  if (!request.keys) throw new BadRequestError("Missing keys");
 
   // Create temp and output directories
   if (!fs.existsSync(TEMP_DIR)) {
@@ -56,10 +41,12 @@ export const lambdaHandler: Handler = async (event: {
   const s3Service = new S3Service(request.bucket);
   const videoService = new VideoService(OUTPUT_DIR, TEMP_DIR);
 
+  console.log("Downloading clips...");
   const inputFilePaths = await Promise.all(
     request.keys.map((key) => s3Service.download(key, TEMP_DIR))
   );
 
+  console.log("Concatenating clips...");
   let outputFilePath = await videoService.concatenateVideos(inputFilePaths);
 
   // Extract directory and filename from the original key
@@ -70,6 +57,7 @@ export const lambdaHandler: Handler = async (event: {
   const newKey = path.join(dirName, fileName);
 
   // Upload using the new key
+  console.log("Uploading concatenated video...");
   await s3Service.upload(outputFilePath, newKey);
 
   // Cleanup
@@ -80,10 +68,5 @@ export const lambdaHandler: Handler = async (event: {
   ]);
   console.log("Cleanup complete");
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      newKey,
-    }),
-  };
+  return newKey;
 };
