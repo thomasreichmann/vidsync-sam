@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
@@ -18,9 +19,12 @@ class VideoService {
     }
   }
 
-  async concatenateVideos(filePaths: string[]) {
+  async concatenateVideos(filePaths: string[]): Promise<string> {
     return new Promise(async (resolve, reject) => {
-      const outputFilePath = path.join(this.outputDir, "output.mp4");
+      const outputFilePath = path.join(
+        this.outputDir,
+        `concatenated_${crypto.randomUUID()}.mp4`
+      );
 
       const ffmpegCommand = Ffmpeg();
       filePaths.forEach((filePath) => {

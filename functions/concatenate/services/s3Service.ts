@@ -1,77 +1,92 @@
-import {
-  GetObjectCommand,
-  ListObjectsCommand,
-  PutObjectCommand,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
-import stream from "stream";
-import util from "util";
-import s3Client from "../lib/s3";
+import defaultFs from "fs";
+import { default as Stream, default as stream } from "stream";
+import defaultS3Client from "../lib/s3.js";
 
-const pipeline = util.promisify(stream.pipeline);
+export interface UploadResult {
+  bucket: string;
+  key: string;
+  statusCode: number;
+}
 
 class S3Service {
   bucketName: string;
+  s3Client: S3;
 
-  constructor(bucketName: string) {
+  constructor(
+    bucketName: string,
+    s3Client: S3 = defaultS3Client,
+    private fs: typeof defaultFs = defaultFs
+  ) {
     this.bucketName = bucketName;
+    this.s3Client = s3Client;
   }
 
-  list(prefix: string) {
-    let command = new ListObjectsCommand({
-      Bucket: this.bucketName,
-      Prefix: prefix,
-    });
+  async upload(
+    data: string | Stream.Readable,
+    outputPath: string
+  ): Promise<UploadResult> {
+    const isStream = data instanceof Stream.Readable;
+    const body = isStream
+      ? await this.stream2buffer(data as Stream.Readable)
+      : this.fs.createReadStream(data);
 
-    return s3Client.send(command);
-  }
-
-  upload(filePath: string) {
-    console.time(`upload ${filePath}`);
     // Upload to /output in s3
     let uploadCommand = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: "output/" + path.basename(filePath),
-      Body: fs.createReadStream(filePath),
+      Key: outputPath,
+      Body: body,
       ContentType: "video/mp4",
     });
 
-    return s3Client.send(uploadCommand);
+    let result = await this.s3Client.send(uploadCommand);
+
+    return {
+      bucket: this.bucketName,
+      key: outputPath,
+      statusCode: result.$metadata.httpStatusCode!,
+    };
   }
 
-  download(key: string, outputDir: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  async download(key: string, outputDir: string): Promise<string> {
+    try {
       // Create download command
       let download = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
       });
 
-      // Download object from s3 and convert to a readable stream
-      let objectStream = fs.ReadStream.from(
-        (await s3Client.send(download)).Body! as stream.Readable
+      // Download object from S3
+      const objectData = await this.s3Client.send(download);
+      const objectStream = this.fs.ReadStream.from(
+        objectData.Body as stream.Readable
       );
 
-      // make sure that outputDir exists
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-        console.log(".");
-      }
+      // Create a file path
+      const filePath = `${outputDir}/${crypto.randomUUID()}.mp4`;
 
-      // Create a write stream to save the S3 object to a file
-      const fileStream = fs
-        .createWriteStream(`${outputDir}/${crypto.randomUUID()}.mp4`)
-        .on("close", resolve)
-        .on("error", reject);
+      // Return a promise that resolves or rejects based on the stream's finish or error events
+      return new Promise((resolve, reject) => {
+        const fileStream = this.fs
+          .createWriteStream(filePath)
+          .on("finish", () => resolve(filePath))
+          .on("error", reject);
 
-      // Use stream pipeline to handle backpressure and error handling
-      try {
-        await pipeline(objectStream, fileStream);
-      } catch (err) {
-        reject(err);
-      }
+        objectStream.pipe(fileStream).on("error", reject);
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  private async stream2buffer(stream: Stream): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+      const _buf = Array<any>();
+
+      stream.on("data", (chunk) => _buf.push(chunk));
+      stream.on("end", () => resolve(Buffer.concat(_buf)));
+      stream.on("error", (err) => reject(`error converting stream - ${err}`));
     });
   }
 }
