@@ -16,12 +16,14 @@ export default class VideoService {
     const outputPath = `${outputDir}/${crypto.randomUUID()}.mp4`;
 
     const outputOptions =
-      fps < 60 ? "-vf scale=1920:1080,fps=fps=60" : "-vf scale=1920:1080";
+      fps < 60
+        ? "scale=1920:1080,fps=fps=60,setsar=1:1"
+        : "scale=1920:1080,setsar=1:1";
 
     const command = Ffmpeg(inputPath)
-      .outputOptions(outputOptions)
       .videoCodec("libx264")
       .outputOptions("-preset ultrafast")
+      .outputOptions("-vf", outputOptions)
       .addOutput(outputPath);
 
     await this.executeCommand(command);

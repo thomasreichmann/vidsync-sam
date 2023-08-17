@@ -33,14 +33,22 @@ class VideoService {
 
       const totalDuration = await this.getTotalDuration(filePaths);
 
+      const filterSpecs = filePaths
+        .map((filePath, index) => {
+          return `[${index}:v]scale=1920:1080,setsar=1:1[v${index}]`;
+        })
+        .join(";");
+
       ffmpegCommand
         .on("error", (err) => {
           console.error("Error concatenating videos:", err);
           reject(err); // Reject the promise if an error occurs
         })
+        .on("stderr", (stderrLine) => {
+          console.log("FFmpeg output: " + stderrLine);
+        })
         .on("end", () => {
           console.log("Videos concatenated successfully!");
-          console.timeEnd("Execution time");
           resolve(outputFilePath); // Resolve the promise when the operation is completed
         })
         .on("progress", (progress) => {
@@ -51,10 +59,12 @@ class VideoService {
           );
           console.log("Progress:", progressPercentage.toFixed(2), "%");
         })
-        .videoCodec("libx264")
+        .videoCodec("mpeg4")
         .audioCodec("libmp3lame")
+        .videoBitrate("8000k")
         .format("mp4")
         .outputOptions("-preset ultrafast") // Faster encoding
+        .complexFilter(filterSpecs)
         .mergeToFile(outputFilePath, this.tempDir);
     });
   }
@@ -69,63 +79,6 @@ class VideoService {
     });
 
     return videoFiles;
-  }
-
-  async resizeVideo(filePath: string): Promise<void> {
-    // Check if the video resolution is different from 1920x1080
-    const tempFilePath = path.join(this.tempDir, path.basename(filePath));
-
-    let fps = await this.getFPS(filePath);
-
-    const outputOptions =
-      fps < 60 ? "-vf scale=1920:1080,fps=fps=60" : "-vf scale=1920:1080";
-
-    // Resize video and set fps to 60
-    await this.resizeFfmpegVideo(filePath, tempFilePath, outputOptions);
-
-    // Delete old video
-    await fs.promises.unlink(filePath);
-
-    // Move new video to the old location
-    await fs.promises.rename(tempFilePath, filePath);
-  }
-
-  private async resizeFfmpegVideo(
-    inputPath: string,
-    outputPath: string,
-    outputOptions: string
-  ): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      Ffmpeg(inputPath)
-        .outputOptions(outputOptions)
-        .videoCodec("libx264")
-        .outputOptions("-preset ultrafast") // This option should make resizing faster
-        .on("error", reject)
-        .on("end", resolve)
-        .save(outputPath);
-    });
-  }
-
-  private async getFPS(filePath: string): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      Ffmpeg.ffprobe(filePath, (err, data) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        const videoStream = data.streams.find(
-          (stream) => stream.codec_type === "video"
-        );
-
-        if (videoStream) {
-          const fps = eval(videoStream.avg_frame_rate ?? "");
-          resolve(fps);
-        } else {
-          reject(new Error("No video stream found."));
-        }
-      });
-    });
   }
 
   async getTotalDuration(filePaths: string[]): Promise<number> {

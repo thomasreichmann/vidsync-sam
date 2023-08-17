@@ -46,7 +46,9 @@ export const lambdaHandler: Handler = async (
   );
 
   console.log("Concatenating clips...");
+  console.time("concatenateVideos");
   let outputFilePath = await videoService.concatenateVideos(inputFilePaths);
+  console.timeEnd("concatenateVideos");
 
   // Extract directory and filename from the original key
   const dirName = path.dirname(request.keys[0]);
@@ -58,6 +60,20 @@ export const lambdaHandler: Handler = async (
   // Upload using the new key
   console.log("Uploading concatenated video...");
   await s3Service.upload(outputFilePath, newKey);
+
+  // Calculate the ratio of the concatenated video to the original videos combined size
+  const outputFileSize = fs.statSync(outputFilePath).size / 1000000;
+  let inputsFileSize = inputFilePaths.reduce(
+    (acc, curr) => acc + fs.statSync(curr).size / 1000000,
+    0
+  );
+  const ratio = ((outputFileSize / inputsFileSize) * 100).toFixed(2);
+  console.log(
+    `inputFileSize: ${inputsFileSize}, outputFileSize: ${outputFileSize}, ratio: ${ratio}`
+  );
+  console.log(
+    `Concatenated video is ${ratio}% the size of the original videos combined`
+  );
 
   // Cleanup
   console.log("Cleaning up temp and clips directories...");

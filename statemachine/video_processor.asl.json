@@ -23,6 +23,14 @@
               "key.$": "$",
               "bucket.$": "$$.Execution.Input.bucket"
             },
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.TooManyRequestsException"],
+                "IntervalSeconds": 90,
+                "MaxAttempts": 5,
+                "BackoffRate": 1
+              }
+            ],
             "End": true
           }
         }

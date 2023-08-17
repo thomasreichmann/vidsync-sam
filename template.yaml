@@ -9,7 +9,7 @@ Description: >
 Globals:
   Function:
     Timeout: 500
-    MemorySize: 1024
+    MemorySize: 3008
 
 Resources:
   VideoProcessingStateMachine:
@@ -47,6 +47,8 @@ Resources:
     Properties:
       PackageType: Image
       Role: !GetAtt LambdaExecutionRole.Arn
+      EphemeralStorage:
+        Size: 2048
       Policies:
         - S3CrudPolicy:
             BucketName: vidsync-compiler

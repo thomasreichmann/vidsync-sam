@@ -1,4 +1,4 @@
-import { lambdaHandler, ProcessRequest } from "./app.js";
+import { lambdaHandler } from "./app.js";
 
 const context = {
   callbackWaitsForEmptyEventLoop: false,
@@ -24,26 +24,14 @@ const context = {
 };
 
 const KEYS = [
-  "clips/LuckyTentativeMouseSoBayed-ancAAaStdvlGmwRY",
-  "clips/BashfulStormySangYouDontSay-8AqKsS3HgbU6wsKd",
-  "clips/AgreeableInnocentShingleNerfBlueBlaster-OuKJyOOe-HKwc5IE",
-  "clips/SaltyPlainLarkCharlietheUnicorn-XbEnVyts4W_4T5xX",
-  "clips/DignifiedGloriousDumplingsDxAbomb-0PtY8gscPTsKCcPw",
+  "clips/normalized_FrigidDarkCodVoteYea-TBtiMVDiJPtLtoNN.mp4",
+  "clips/normalized_BoredWrongClintmullinsVoteNay-KiQyr393rWRXcmiR.mp4",
+  "clips/normalized_DeliciousReliableMageFunRun-Z763EH_VG-53y00q.mp4",
 ];
 
-const NORMALIZED_KEYS = [
-  "clips/normalized_LuckyTentativeMouseSoBayed-ancAAaStdvlGmwRY",
-  "clips/normalized_BashfulStormySangYouDontSay-8AqKsS3HgbU6wsKd",
-  "clips/normalized_AgreeableInnocentShingleNerfBlueBlaster-OuKJyOOe-HKwc5IE",
-  "clips/normalized_SaltyPlainLarkCharlietheUnicorn-XbEnVyts4W_4T5xX",
-  "clips/normalized_DignifiedGloriousDumplingsDxAbomb-0PtY8gscPTsKCcPw",
-];
-
-const event: { body: ProcessRequest } = {
-  body: {
-    bucket: "vidsync-compiler",
-    keys: KEYS,
-  },
+const event = {
+  bucket: "vidsync-compiler",
+  keys: KEYS,
 };
 
 const res = lambdaHandler(event, context, () => {});
