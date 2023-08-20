@@ -5,7 +5,7 @@ import os from "os";
 import path from "path";
 import { createErrorType } from "./lib/baseError.js";
 import S3Service from "./services/s3Service.js";
-import VideoService from "./services/videoService.js";
+import VideoService, { VideoSettings } from "./services/videoService.js";
 
 const IS_LAMBDA_ENVIRONMENT = !!process.env.AWS_EXECUTION_ENV;
 const ROOT_DIR = IS_LAMBDA_ENVIRONMENT ? os.tmpdir() : ".";
@@ -16,13 +16,12 @@ const TEMP_DIR = path.join(ROOT_DIR, "temp");
 export interface ProcessRequest {
   bucket?: string;
   keys?: string[];
+  videoSettings?: VideoSettings;
 }
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
-export const lambdaHandler: Handler = async (
-  request: ProcessRequest
-): Promise<string> => {
+export const lambdaHandler: Handler = async (request: ProcessRequest): Promise<string> => {
   console.log("Received event:", request);
 
   if (!request.bucket) throw new BadRequestError("Missing bucket");
@@ -41,13 +40,13 @@ export const lambdaHandler: Handler = async (
   const videoService = new VideoService(OUTPUT_DIR, TEMP_DIR);
 
   console.log("Downloading clips...");
-  const inputFilePaths = await Promise.all(
-    request.keys.map((key) => s3Service.download(key, TEMP_DIR))
-  );
+  const inputFilePaths = await Promise.all(request.keys.map((key) => s3Service.download(key, TEMP_DIR)));
+
+  console.time("concatenateVideos");
 
   console.log("Concatenating clips...");
-  console.time("concatenateVideos");
-  let outputFilePath = await videoService.concatenateVideos(inputFilePaths);
+  let outputFilePath = await videoService.concatenateVideos(inputFilePaths, request.videoSettings);
+
   console.timeEnd("concatenateVideos");
 
   // Extract directory and filename from the original key
@@ -63,17 +62,10 @@ export const lambdaHandler: Handler = async (
 
   // Calculate the ratio of the concatenated video to the original videos combined size
   const outputFileSize = fs.statSync(outputFilePath).size / 1000000;
-  let inputsFileSize = inputFilePaths.reduce(
-    (acc, curr) => acc + fs.statSync(curr).size / 1000000,
-    0
-  );
+  let inputsFileSize = inputFilePaths.reduce((acc, curr) => acc + fs.statSync(curr).size / 1000000, 0);
   const ratio = ((outputFileSize / inputsFileSize) * 100).toFixed(2);
-  console.log(
-    `inputFileSize: ${inputsFileSize}, outputFileSize: ${outputFileSize}, ratio: ${ratio}`
-  );
-  console.log(
-    `Concatenated video is ${ratio}% the size of the original videos combined`
-  );
+  console.log(`inputFileSize: ${inputsFileSize}, outputFileSize: ${outputFileSize}, ratio: ${ratio}`);
+  console.log(`Concatenated video is ${ratio}% the size of the original videos combined`);
 
   // Cleanup
   console.log("Cleaning up temp and clips directories...");

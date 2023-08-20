@@ -2,8 +2,27 @@ import crypto from "crypto";
 import Ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
+import { AudioCodec, FFmpegVideoCodec, FFmpegVideoFormat, FFmpegVideoPreset } from "../lib/ffmpeg.js";
 
-const ACCEPTED_FILE_EXTENSIONS = [".mp4", ".mov", ".avi"];
+const DEFAULT_VIDEO_SETTINGS: VideoSettings = {
+  videoCodec: "libx264",
+  videoBitrate: "8000",
+  videoPreset: "ultrafast",
+  audioCodec: "libmp3lame",
+  scale: "1920:1080",
+  sar: "1:1",
+  format: "mp4",
+};
+
+export interface VideoSettings {
+  videoCodec?: FFmpegVideoCodec;
+  videoBitrate?: string;
+  videoPreset?: FFmpegVideoPreset;
+  audioCodec?: AudioCodec;
+  scale?: string;
+  sar?: string;
+  format?: FFmpegVideoFormat;
+}
 
 class VideoService {
   outputDir: string;
@@ -19,66 +38,74 @@ class VideoService {
     }
   }
 
-  async concatenateVideos(filePaths: string[]): Promise<string> {
-    return new Promise(async (resolve, reject) => {
-      const outputFilePath = path.join(
-        this.outputDir,
-        `concatenated_${crypto.randomUUID()}.mp4`
-      );
+  async concatenateVideos(filePaths: string[], options: VideoSettings = {}): Promise<string> {
+    // Merge default options with user options (if any)
+    options = {
+      ...DEFAULT_VIDEO_SETTINGS,
+      ...options,
+    };
 
-      const ffmpegCommand = Ffmpeg();
-      filePaths.forEach((filePath) => {
-        ffmpegCommand.input(filePath);
+    console.log("using options:", options);
+
+    const outputFilePath = path.join(this.outputDir, `concatenated_${crypto.randomUUID()}.mp4`);
+
+    const ffmpegCommand = Ffmpeg();
+    filePaths.forEach((filePath) => ffmpegCommand.input(filePath));
+
+    const filterSpecs = filePaths
+      .map((_, index) => {
+        return `[${index}:v]scale=${options.scale},setsar=${options.sar}[v${index}]`;
+      })
+      .join(";");
+
+    // Prepare ffmpeg command for execution
+    ffmpegCommand
+      .videoCodec(options.videoCodec as string)
+      .audioCodec(options.audioCodec as string)
+      .videoBitrate(options.videoBitrate as string)
+      .format(options.format as string)
+      .outputOptions(`-preset ${options.videoPreset}`)
+      .complexFilter(filterSpecs);
+
+    // Get duration for progress log calculation
+    const totalDuration = await this.getTotalDuration(filePaths);
+
+    return this.executeFfmpegMerge(ffmpegCommand, outputFilePath, totalDuration);
+  }
+
+  private async executeFfmpegMerge(
+    ffmpegCommand: Ffmpeg.FfmpegCommand,
+    outputPath: string,
+    totalDuration: number
+  ): Promise<string> {
+    // SetupFFmpeg logs
+    ffmpegCommand
+      .on("stderr", (stderrLine) => {
+        console.log("FFmpeg output: " + stderrLine);
+      })
+      .on("progress", (progress) => {
+        const currentSeconds = this.getSeconds(progress.timemark);
+        const progressPercentage = this.getProgress(currentSeconds, totalDuration);
+        console.log("Progress:", progressPercentage.toFixed(2), "%");
       });
 
-      const totalDuration = await this.getTotalDuration(filePaths);
-
-      const filterSpecs = filePaths
-        .map((filePath, index) => {
-          return `[${index}:v]scale=1920:1080,setsar=1:1[v${index}]`;
-        })
-        .join(";");
-
+    // Setup promise responses and run merge
+    return new Promise((resolve, reject) => {
       ffmpegCommand
         .on("error", (err) => {
           console.error("Error concatenating videos:", err);
-          reject(err); // Reject the promise if an error occurs
-        })
-        .on("stderr", (stderrLine) => {
-          console.log("FFmpeg output: " + stderrLine);
+          reject(err);
         })
         .on("end", () => {
           console.log("Videos concatenated successfully!");
-          resolve(outputFilePath); // Resolve the promise when the operation is completed
+          resolve(outputPath);
         })
-        .on("progress", (progress) => {
-          const currentSeconds = this.getSeconds(progress.timemark);
-          const progressPercentage = this.getProgress(
-            currentSeconds,
-            totalDuration
-          );
-          console.log("Progress:", progressPercentage.toFixed(2), "%");
-        })
-        .videoCodec("mpeg4")
-        .audioCodec("libmp3lame")
-        .videoBitrate("8000k")
-        .format("mp4")
-        .outputOptions("-preset ultrafast") // Faster encoding
-        .complexFilter(filterSpecs)
-        .mergeToFile(outputFilePath, this.tempDir);
+        .mergeToFile(outputPath, this.tempDir);
     });
   }
 
   async getVideoFiles(): Promise<string[]> {
-    let files = await fs.promises.readdir(this.outputDir);
-
-    // TODO: REMOVE THIS
-    const videoFiles = files.filter((file) => {
-      const extension = path.extname(file).toLowerCase();
-      return ACCEPTED_FILE_EXTENSIONS.includes(extension);
-    });
-
-    return videoFiles;
+    return fs.promises.readdir(this.outputDir);
   }
 
   async getTotalDuration(filePaths: string[]): Promise<number> {

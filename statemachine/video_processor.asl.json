@@ -21,7 +21,8 @@
             "Resource": "${PreProcessFunctionArn}",
             "Parameters": {
               "key.$": "$",
-              "bucket.$": "$$.Execution.Input.bucket"
+              "bucket.$": "$$.Execution.Input.bucket",
+              "videoSettings.$": "$$.Execution.Input.preProcessSettings"
             },
             "Retry": [
               {
@@ -42,7 +43,8 @@
       "Resource": "${ConcatenateVideoFunctionArn}",
       "Parameters": {
         "bucket.$": "$$.Execution.Input.bucket",
-        "keys.$": "$"
+        "keys.$": "$",
+        "videoSettings.$": "$$.Execution.Input.concatenateSettings"
       },
       "End": true
     }
