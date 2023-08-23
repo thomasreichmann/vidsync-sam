@@ -5,7 +5,6 @@ const videoService: VideoService = new VideoService();
 
 const filePath = "../../clips/IcyCoweringHabaneroResidentSleeper-Cr-aCd_NGWbawR8p.mp4";
 
-console.time("normalize");
 videoService
   .normalize(filePath, "../../clips", {
     videoCodec: "mpeg4",
@@ -13,8 +12,6 @@ videoService
     videoPreset: "ultrafast",
   })
   .then((result) => {
-    console.timeEnd("normalize");
-
     const inputSize = fs.statSync(filePath).size / 1024 / 1024;
     const outputSize = fs.statSync(result).size / 1024 / 1024;
     const ratio = (outputSize / inputSize) * 100;

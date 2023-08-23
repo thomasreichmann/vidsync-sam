@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import Ffmpeg, { FfmpegCommand, FfprobeData } from "fluent-ffmpeg";
 import { promisify } from "util";
+import { timed } from "../lib/decorators.js";
 
 type FFmpegVideoCodec =
   | "libx264"
@@ -54,6 +55,7 @@ export default class VideoService {
     this.ffprobe = promisify(ffmpeg.ffprobe);
   }
 
+  @timed
   async normalize(inputPath: string, outputDir: string, options: VideoSettings = {}): Promise<string> {
     const outputPath = `${outputDir}/${crypto.randomUUID()}.mp4`;
 
@@ -93,6 +95,7 @@ export default class VideoService {
     });
   }
 
+  @timed
   private async getIdealBitrate(filePath: string, targetBitrate: number): Promise<number> {
     const data = await this.ffprobe(filePath);
 

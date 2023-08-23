@@ -1,4 +1,5 @@
 import { createErrorType } from "../lib/baseError.js";
+import { timed } from "../lib/decorators.js";
 import S3Service from "./s3Service.js";
 
 const BUCKET_NAME = "vidsync-compiler";
@@ -10,6 +11,7 @@ export default class DownloadService {
     this.s3Service = s3Service;
   }
 
+  @timed
   async download(key: string, outputDir: string): Promise<string> {
     try {
       return await this.s3Service.download(key, outputDir);
@@ -18,6 +20,7 @@ export default class DownloadService {
     }
   }
 
+  @timed
   async upload(key: string, filePath: string): Promise<void> {
     try {
       await this.s3Service.upload(filePath, key);
