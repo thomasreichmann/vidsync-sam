@@ -1,5 +1,5 @@
 import { HelixClip } from "@twurple/api";
-import { MAX_VIDEOS } from "../config.js";
+import { DAY_IN_MS, MAX_VIDEOS } from "../config.js";
 import twurpleClient from "../lib/twurple.js";
 import IVideoSource, { TwitchVideoSourceOptions } from "./IVideoSource.js";
 
@@ -17,30 +17,34 @@ export default class TwitchVideoSource implements IVideoSource {
 
   private async getGameClips(gameId: string, quantity: number, languages: string[]): Promise<HelixClip[]> {
     let now = new Date();
-    let tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    let yesterday = new Date(now.getTime() - DAY_IN_MS);
 
-    let request = twurpleClient.clips.getClipsForGamePaginated(gameId, {
-      startDate: now.toISOString(),
-      endDate: tomorrow.toISOString(),
+    let paginatedRequest = twurpleClient.clips.getClipsForGamePaginated(gameId, {
+      startDate: yesterday.toISOString(),
+      endDate: now.toISOString(),
     });
 
-    let page: HelixClip[] = [];
     const result: HelixClip[] = [];
+    for await (const clip of paginatedRequest) {
+      if (this.shouldSkipClip(clip, languages)) continue;
 
-    while (this.shouldContinueFetching(MAX_VIDEOS, (page = await request.getNext()), result)) {
-      result.push(...page);
+      result.push(clip);
+
+      if (this.hasCollectedEnoughClips(result, quantity)) break;
     }
-
-    result.splice(quantity);
 
     return result;
   }
 
-  private generateDownloadUrl(clip: HelixClip): string {
-    return clip.thumbnailUrl.replace("-preview-480x272.jpg", ".mp4");
+  private shouldSkipClip(clip: HelixClip, languages: string[]): boolean {
+    return !languages.includes(clip.language);
   }
 
-  private shouldContinueFetching(max: number, page: any[], result: any[]): boolean {
-    return Boolean(result.length <= max && page.length);
+  private hasCollectedEnoughClips(clips: HelixClip[], desiredQuantity: number): boolean {
+    return clips.length >= Math.min(desiredQuantity, MAX_VIDEOS);
+  }
+
+  private generateDownloadUrl(clip: HelixClip): string {
+    return clip.thumbnailUrl.replace("-preview-480x272.jpg", ".mp4");
   }
 }
