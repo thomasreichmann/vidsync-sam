@@ -28,6 +28,17 @@ Resources:
             Path: /state/start
             Method: get
 
+  Curate:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+    Metadata:
+      DockerContext: ./functions/curate
+      Dockerfile: Dockerfile
+
   DownloadVideo:
     Type: AWS::Serverless::Function
     Properties:
