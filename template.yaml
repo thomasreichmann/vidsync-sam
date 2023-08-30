@@ -35,6 +35,10 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          TWITCH_CLIENT_ID: "{{resolve:ssm:/vidsync/twitch/id:1}}"
+          TWITCH_ACCESS_TOKEN: "{{resolve:ssm:/vidsync/twitch/token:1}}"
     Metadata:
       DockerContext: ./functions/curate
       Dockerfile: Dockerfile

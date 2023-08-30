@@ -1,4 +1,5 @@
 import { Handler } from "aws-lambda";
+import crypto from "crypto";
 import "dotenv/config";
 import fs from "fs";
 import os from "os";
@@ -7,7 +8,6 @@ import Stream from "stream";
 import { createErrorType } from "./lib/baseError.js";
 import DownloadService from "./services/downloadService.js";
 import S3Service from "./services/s3Service.js";
-import TwitchService from "./services/twitchService.js";
 
 const BUCKET_NAME = "vidsync-compiler";
 const BUCKET_FOLDER = "clips/";
@@ -18,23 +18,14 @@ const ROOT_DIR = IS_LAMBDA_ENVIRONMENT ? os.tmpdir() : ".";
 const TEMP_DIR = path.join(ROOT_DIR, "temp");
 
 const s3Service = new S3Service(BUCKET_NAME);
-const twitchService = new TwitchService();
 const downloadService = new DownloadService();
-
-export interface DownloadRequest {
-  quantity?: number;
-  gameId?: string;
-}
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
-export const lambdaHandler: Handler = async (
-  request: DownloadRequest
-): Promise<string[]> => {
-  console.log("Received request:", request);
+export const lambdaHandler: Handler = async (downloadUrls?: string[]): Promise<string[]> => {
+  console.log("Received request:", downloadUrls);
 
-  if (!request.quantity) throw new BadRequestError("Missing quantity");
-  if (!request.gameId) throw new BadRequestError("Missing gameId");
+  if (!downloadUrls) throw new BadRequestError("Missing urls");
 
   // Create temp and output directories
   if (!fs.existsSync(TEMP_DIR)) {
@@ -42,32 +33,16 @@ export const lambdaHandler: Handler = async (
     console.log("Temp directory created:", TEMP_DIR);
   }
 
-  // Get clips for gameId
-  console.log("Getting clips for gameId:", request.gameId);
-  const clips = await twitchService.getClips(request.gameId, request.quantity);
-  console.log(
-    "Clips retrieved:",
-    clips.map((c) => c.title)
-  );
-
-  const downloadUrls = clips.map((clip) =>
-    twitchService.generateDownloadUrl(clip)
-  );
-  console.log("Download URLs generated:", downloadUrls);
-
   // Download clips
   console.log("Downloading clips...");
-  const clipStreams = await Promise.all(
-    downloadUrls.map((url) => downloadService.get(url))
-  );
+  const clipStreams = await Promise.all(downloadUrls.map((url) => downloadService.get(url)));
   console.log("Clips downloaded");
 
   // Upload clips to S3
   console.log("Uploading clips to S3...");
+  const uniqueKey = crypto.randomInt(10000);
   const uploadPromises = clipStreams.map((stream, index) => {
-    const clip = clips[index];
-    const clipName = clip.id;
-    const clipPath = path.join(BUCKET_FOLDER, `${clipName}.mp4`);
+    const clipPath = path.join(BUCKET_FOLDER, `${uniqueKey}_${index}_${crypto.randomUUID()}.mp4`);
 
     return s3Service.upload(stream as Stream.Readable, clipPath);
   });

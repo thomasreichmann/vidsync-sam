@@ -1,4 +1,4 @@
-import { DownloadRequest, lambdaHandler } from "./app.js";
+import { lambdaHandler } from "./app.js";
 
 const context = {
   callbackWaitsForEmptyEventLoop: false,
@@ -23,12 +23,17 @@ const context = {
   },
 };
 
-const event: DownloadRequest = {
-  quantity: 2,
-  gameId: "516575",
-};
-
-const res = lambdaHandler(event, context, () => {});
+const res = lambdaHandler(
+  [
+    "https://clips-media-assets2.twitch.tv/2lz7rS3HAVqIWyI9Zle-JA/AT-cm%7C2lz7rS3HAVqIWyI9Zle-JA.mp4",
+    "https://clips-media-assets2.twitch.tv/UJ7IqMyT0HU_Aj_dxIk-eA/41033140600-offset-55272.mp4",
+    "https://clips-media-assets2.twitch.tv/T2UcBjg6NcRBjiGZoJ7dvA/AT-cm%7CT2UcBjg6NcRBjiGZoJ7dvA.mp4",
+    "https://clips-media-assets2.twitch.tv/rT0kiZiFeshz8D09QGbnNg/AT-cm%7CrT0kiZiFeshz8D09QGbnNg.mp4",
+    "https://clips-media-assets2.twitch.tv/oIrDPJaNpatvpqi-ui50EA/42668587083-offset-5940.mp4",
+  ],
+  context,
+  () => {}
+);
 
 if (res instanceof Promise) {
   res.then((r) => console.log(r));
