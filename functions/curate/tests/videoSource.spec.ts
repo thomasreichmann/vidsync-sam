@@ -11,7 +11,7 @@ const videoSource = getVideoSource();
 const options: VideoSourceOptions = {
   type: VideoSourceType.Twitch,
   gameIds: ["21779", "29307"],
-  languages: ["en"],
+  languages: ["en", "es", "pt", "kr"],
   quantity: 10,
 };
 

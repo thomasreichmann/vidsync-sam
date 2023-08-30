@@ -5,13 +5,18 @@ import IVideoSource, { TwitchVideoSourceOptions } from "./IVideoSource.js";
 
 export default class TwitchVideoSource implements IVideoSource {
   async getVideos(options: TwitchVideoSourceOptions): Promise<string[]> {
-    const gameClips = await Promise.all(
-      options.gameIds.map((gameId) => this.getGameClips(gameId, options.quantity, options.languages))
-    );
+    const clipsPerGame = Math.floor(options.quantity / options.gameIds.length);
+    const remainder = options.quantity % options.gameIds.length;
 
+    const gameClipsPromises = options.gameIds.map((gameId, index) => {
+      const extraClip = index < remainder ? 1 : 0;
+      return this.getGameClips(gameId, clipsPerGame + extraClip, options.languages);
+    });
+
+    const gameClips = await Promise.all(gameClipsPromises);
     const clips = gameClips.flat();
-    clips.sort((a, b) => b.views - a.views);
 
+    clips.sort((a, b) => b.views - a.views);
     return clips.map((clip) => this.generateDownloadUrl(clip));
   }
 

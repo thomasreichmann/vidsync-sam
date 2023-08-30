@@ -1,4 +1,5 @@
-import { lambdaHandler } from "./src/app.js";
+import "dotenv/config";
+import { CurateRequest, lambdaHandler } from "./src/app.js";
 
 const context = {
   callbackWaitsForEmptyEventLoop: false,
@@ -23,7 +24,13 @@ const context = {
   },
 };
 
-const res = lambdaHandler({}, context, () => {});
+const request: CurateRequest = {
+  quantity: 10,
+  languages: ["en"],
+  gameIds: ["509658"],
+};
+
+const res = lambdaHandler(request, context, () => {});
 
 if (res instanceof Promise) {
   res.then((r) => console.log(r));

@@ -12,7 +12,7 @@ export interface TwitchVideoSourceOptions extends BaseVideoSourceOptions {
   gameIds: string[];
 }
 
-export type VideoSourceOptions = TwitchVideoSourceOptions; // Add more types here (e.g. | YouTubeVideoSourceOptions)
+export type VideoSourceOptions = TwitchVideoSourceOptions; // we will later add more types here (e.g. | YouTubeVideoSourceOptions)
 
 export default interface IVideoSource {
   getVideos(options: VideoSourceOptions): Promise<string[]>;
