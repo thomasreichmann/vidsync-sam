@@ -1,10 +1,12 @@
 import { HelixClip } from "@twurple/api";
 import { DAY_IN_MS, MAX_VIDEOS } from "../config.js";
 import twurpleClient from "../lib/twurple.js";
-import IVideoSource, { TwitchVideoSourceOptions } from "./IVideoSource.js";
+import IVideoSource, { TwitchVideoSourceOptions, VideoResponse } from "./IVideoSource.js";
 
 export default class TwitchVideoSource implements IVideoSource {
-  async getVideos(options: TwitchVideoSourceOptions): Promise<string[]> {
+  baseChannelUrl: string = "http://twitch.tv";
+
+  async getVideos(options: TwitchVideoSourceOptions): Promise<VideoResponse[]> {
     const clipsPerGame = Math.floor(options.quantity / options.gameIds.length);
     const remainder = options.quantity % options.gameIds.length;
 
@@ -17,7 +19,19 @@ export default class TwitchVideoSource implements IVideoSource {
     const clips = gameClips.flat();
 
     clips.sort((a, b) => b.views - a.views);
-    return clips.map((clip) => this.generateDownloadUrl(clip));
+
+    const videoResponses: VideoResponse[] = clips.map((clip) => {
+      return {
+        title: clip.title,
+        creatorName: clip.creatorDisplayName,
+        creatorUrl: `${this.baseChannelUrl}/${clip.creatorDisplayName}`,
+        downloadUrl: this.generateDownloadUrl(clip),
+        originalUrl: clip.url,
+        durationSeconds: clip.duration,
+      };
+    });
+
+    return videoResponses;
   }
 
   private async getGameClips(gameId: string, quantity: number, languages: string[]): Promise<HelixClip[]> {

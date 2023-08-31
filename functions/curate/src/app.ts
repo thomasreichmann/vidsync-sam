@@ -1,6 +1,6 @@
 import { Handler } from "aws-lambda";
 import { createErrorType } from "./lib/baseError.js";
-import { VideoSourceType } from "./videoSources/IVideoSource.js";
+import { VideoResponse, VideoSourceType } from "./videoSources/IVideoSource.js";
 import TwitchVideoSource from "./videoSources/TwitchVideoSource.js";
 
 export interface CurateRequest {
@@ -33,7 +33,7 @@ function validateRequest(request: CurateRequest): asserts request is Required<Cu
   }
 }
 
-export const lambdaHandler: Handler = async (request: CurateRequest): Promise<string[]> => {
+export const lambdaHandler: Handler = async (request: CurateRequest): Promise<VideoResponse[]> => {
   validateRequest(request);
 
   const videoSource = new TwitchVideoSource();

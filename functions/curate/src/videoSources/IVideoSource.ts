@@ -14,6 +14,17 @@ export interface TwitchVideoSourceOptions extends BaseVideoSourceOptions {
 
 export type VideoSourceOptions = TwitchVideoSourceOptions; // we will later add more types here (e.g. | YouTubeVideoSourceOptions)
 
+export interface VideoResponse {
+  title: string;
+  creatorName: string;
+
+  originalUrl: string;
+  creatorUrl: string;
+  downloadUrl: string;
+
+  durationSeconds: number;
+}
+
 export default interface IVideoSource {
-  getVideos(options: VideoSourceOptions): Promise<string[]>;
+  getVideos(options: VideoSourceOptions): Promise<VideoResponse[]>;
 }

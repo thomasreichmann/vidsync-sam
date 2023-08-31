@@ -22,10 +22,14 @@ const downloadService = new DownloadService();
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
-export const lambdaHandler: Handler = async (downloadUrls?: string[]): Promise<string[]> => {
-  console.log("Received request:", downloadUrls);
+interface VideoRequest {
+  downloadUrl: string;
+}
 
-  if (!downloadUrls) throw new BadRequestError("Missing urls");
+export const lambdaHandler: Handler = async (videoRequests?: VideoRequest[]): Promise<string[]> => {
+  console.log("Received request:", videoRequests);
+
+  if (!videoRequests) throw new BadRequestError("Missing urls");
 
   // Create temp and output directories
   if (!fs.existsSync(TEMP_DIR)) {
@@ -35,7 +39,7 @@ export const lambdaHandler: Handler = async (downloadUrls?: string[]): Promise<s
 
   // Download clips
   console.log("Downloading clips...");
-  const clipStreams = await Promise.all(downloadUrls.map((url) => downloadService.get(url)));
+  const clipStreams = await Promise.all(videoRequests.map((request) => downloadService.get(request.downloadUrl)));
   console.log("Clips downloaded");
 
   // Upload clips to S3
