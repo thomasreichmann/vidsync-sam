@@ -21,7 +21,7 @@ export interface ProcessRequest {
   key?: string;
   videoSettings?: VideoSettings;
 }
-// test new name
+
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
 export const lambdaHandler: Handler = async (request: ProcessRequest): Promise<string> => {
