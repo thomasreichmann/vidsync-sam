@@ -11,13 +11,15 @@ The backend is built using AWS Serverless Application Model (SAM) and consists o
 3. **PreProcess**: Processes each clip, preparing them for assembly.
 4. **Concatenate**: Merges all processed clips into a single video file ready for upload.
 
+These Lambda functions are containerized and deployed as Docker images, allowing for more consistent and portable executions.
+
 This serverless architecture ensures scalability, resilience, and efficient use of resources.
 
 ## Transition to AWS
 
 Previously, the backend was hosted elsewhere, but in the spirit of evolution and leveraging best-of-breed cloud services, we've transitioned to AWS. This move provides improved scalability, flexibility, and a range of AWS services to further optimize the workflow.
 
-For details about the frontend transition to Next.js and the shift from Firebase to MongoDB Atlas, please refer to the [frontend repository](https://chat.openai.com/c/link-to-frontend-repo).
+For details about the frontend transition to Next.js and the shift from Firebase to MongoDB Atlas, please refer to the [frontend repository](https://github.com/thomasreichmann/auto-twitch-compiler-web).
 
 ## Dev
 
