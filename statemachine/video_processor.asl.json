@@ -54,7 +54,7 @@
       "Resource": "${ConcatenateVideoFunctionArn}",
       "Parameters": {
         "bucket.$": "$.bucket",
-        "keys.$": "$",
+        "keys.$": "$.PreProcessOutput",
         "videoSettings.$": "$.concatenateSettings"
       },
       "End": true,
