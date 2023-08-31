@@ -1,14 +1,20 @@
 {
   "Comment": "Video processing state machine",
-  "StartAt": "Download",
+  "StartAt": "Curate",
   "States": {
+    "Curate": {
+      "Type": "Task",
+      "Resource": "${CurateFunctionArn}",
+      "Parameters": {
+        "quantity.$": "$.quantity",
+        "gameIds.$": "$.gameIds",
+        "languages.$": "$.languages"
+      },
+      "Next": "Download"
+    },
     "Download": {
       "Type": "Task",
       "Resource": "${DownloadVideoFunctionArn}",
-      "Parameters": {
-        "quantity.$": "$.quantity",
-        "gameId.$": "$.gameId"
-      },
       "Next": "PreProcess"
     },
     "PreProcess": {

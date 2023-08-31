@@ -20,6 +20,7 @@ Resources:
         DownloadVideoFunctionArn: !GetAtt DownloadVideo.Arn
         ConcatenateVideoFunctionArn: !GetAtt ConcatenateVideo.Arn
         PreProcessFunctionArn: !GetAtt PreProcess.Arn
+        CurateFunctionArn: !GetAtt Curate.Arn
       Role: !GetAtt VideoProcessingStateMachineRole.Arn
       Events:
         ApiEvent:
@@ -124,6 +125,7 @@ Resources:
                   - !GetAtt DownloadVideo.Arn
                   - !GetAtt ConcatenateVideo.Arn
                   - !GetAtt PreProcess.Arn
+                  - !GetAtt Curate.Arn
 # Outputs:
 # # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 # # Find out more about other implicit resources you can reference within SAM
