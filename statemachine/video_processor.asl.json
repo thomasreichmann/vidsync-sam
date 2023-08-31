@@ -10,12 +10,15 @@
         "gameIds.$": "$.gameIds",
         "languages.$": "$.languages"
       },
+      "ResultPath": "$.CurateOutput",
       "Next": "Download"
     },
     "Download": {
       "Type": "Task",
       "Resource": "${DownloadVideoFunctionArn}",
-      "Next": "PreProcess"
+      "Next": "PreProcess",
+      "InputPath": "$.CurateOutput",
+      "ResultPath": "$.DownloadOutput"
     },
     "PreProcess": {
       "Type": "Map",
@@ -42,17 +45,20 @@
           }
         }
       },
-      "Next": "Concatenate"
+      "Next": "Concatenate",
+      "InputPath": "$.DownloadOutput",
+      "ResultPath": "$.PreProcessOutput"
     },
     "Concatenate": {
       "Type": "Task",
       "Resource": "${ConcatenateVideoFunctionArn}",
       "Parameters": {
-        "bucket.$": "$$.Execution.Input.bucket",
+        "bucket.$": "$.bucket",
         "keys.$": "$",
-        "videoSettings.$": "$$.Execution.Input.concatenateSettings"
+        "videoSettings.$": "$.concatenateSettings"
       },
-      "End": true
+      "End": true,
+      "InputPath": "$.PreProcessOutput"
     }
   }
 }
