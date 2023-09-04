@@ -1,9 +1,11 @@
 import { Handler } from "aws-lambda";
+import { TITLE_TEMPLATE } from "./config.js";
 import { createErrorType } from "./lib/baseError.js";
 import MetadataService from "./services/metadataService.js";
 
 export interface MetadataRequest {
-  infos: VideoInfo[];
+  infos?: VideoInfo[];
+  titleTemplate?: string;
 }
 
 export interface VideoInfo {
@@ -37,5 +39,5 @@ export const lambdaHandler: Handler = async (request: MetadataRequest): Promise<
 
   const metadataService = new MetadataService();
 
-  return metadataService.generateMetadata(request.infos);
+  return metadataService.generateMetadata(request.infos, request.titleTemplate ?? TITLE_TEMPLATE);
 };

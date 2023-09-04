@@ -21,6 +21,7 @@ Resources:
         ConcatenateVideoFunctionArn: !GetAtt ConcatenateVideo.Arn
         PreProcessFunctionArn: !GetAtt PreProcess.Arn
         CurateFunctionArn: !GetAtt Curate.Arn
+        GenerateMetadataFunctionArn: !GetAtt GenerateMetadata.Arn
       Role: !GetAtt VideoProcessingStateMachineRole.Arn
       Events:
         ApiEvent:
@@ -28,6 +29,17 @@ Resources:
           Properties:
             Path: /state/start
             Method: get
+
+  GenerateMetadata:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+    Metadata:
+      DockerContext: ./functions/generateMetadata
+      Dockerfile: Dockerfile
 
   Curate:
     Type: AWS::Serverless::Function
@@ -126,6 +138,7 @@ Resources:
                   - !GetAtt ConcatenateVideo.Arn
                   - !GetAtt PreProcess.Arn
                   - !GetAtt Curate.Arn
+                  - !GetAtt GenerateMetadata.Arn
 # Outputs:
 # # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
 # # Find out more about other implicit resources you can reference within SAM
