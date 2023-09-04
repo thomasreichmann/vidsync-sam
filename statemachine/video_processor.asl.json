@@ -57,8 +57,17 @@
         "keys.$": "$.PreProcessOutput",
         "videoSettings.$": "$.concatenateSettings"
       },
-      "End": true,
-      "InputPath": "$.PreProcessOutput"
+      "Next": "GenerateMetadata",
+      "ResultPath": "$.ConcatenateOutput"
+    },
+    "GenerateMetadata": {
+      "Type": "Task",
+      "Resource": "${GenerateMetadataFunctionArn}",
+      "Parameters": {
+        "infos.$": "$.CurateOutput",
+        "titleTemplate.$": "$.titleTemplate"
+      },
+      "End": true
     }
   }
 }
