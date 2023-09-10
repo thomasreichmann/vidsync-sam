@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { lambdaHandler } from "./src/app.js";
+import { UploadRequest, lambdaHandler } from "./src/app.js";
 
 const context = {
   callbackWaitsForEmptyEventLoop: false,
@@ -24,7 +24,17 @@ const context = {
   },
 };
 
-const request: any = {};
+const request: UploadRequest = {
+  bucket: "vidsync-compiler",
+  key: "output/output.mp4",
+  auth: {
+    access_token: "",
+    expiresAt: 0,
+    refreshToken: "",
+    idToken: "",
+    userId: "",
+  },
+};
 
 const res = lambdaHandler(request, context, () => {});
 
