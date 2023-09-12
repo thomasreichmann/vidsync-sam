@@ -25,7 +25,7 @@ const context = {
 };
 
 const access_token: string = process.env.access_token || "";
-const expiresAt: number = parseInt(process.env.expiresAt || "0", 10);
+const expiresAt: number = parseInt(process.env.expiresAt || "0");
 const refreshToken: string = process.env.refreshToken || "";
 const idToken: string = process.env.idToken || "";
 const userId: string = process.env.userId || "";
@@ -39,6 +39,10 @@ const request: UploadRequest = {
     refreshToken,
     idToken,
     userId,
+  },
+  metadata: {
+    title: "test upload",
+    description: "test upload",
   },
 };
 
