@@ -6,10 +6,12 @@ export default class YoutubeService {
   youtube: youtube_v3.Youtube;
   auth: Auth.OAuth2Client;
 
-  constructor(client: { clientId: string; clientSecret: string }, credentials: Auth.Credentials) {
+  constructor(client: { clientId: string; clientSecret: string }, refreshToken: string) {
     const auth = new google.auth.OAuth2({ ...client });
 
-    auth.setCredentials(credentials);
+    auth.setCredentials({
+      refresh_token: refreshToken,
+    });
     google.options({ auth });
 
     this.youtube = google.youtube("v3");

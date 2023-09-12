@@ -24,21 +24,15 @@ const context = {
   },
 };
 
-const access_token: string = process.env.access_token || "";
-const expiresAt: number = parseInt(process.env.expiresAt || "0");
 const refreshToken: string = process.env.refreshToken || "";
-const idToken: string = process.env.idToken || "";
 const userId: string = process.env.userId || "";
 
 const request: UploadRequest = {
   bucket: "vidsync-compiler",
   key: "output/output.mp4",
   auth: {
-    access_token,
-    expiresAt,
-    refreshToken,
-    idToken,
     userId,
+    refreshToken,
   },
   metadata: {
     title: "test upload",

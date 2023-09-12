@@ -8,17 +8,9 @@ const client = {
   clientSecret: process.env.clientSecret ?? "",
 };
 
-const access_token: string = process.env.access_token || "";
-const expiry_date: number = parseInt(process.env.expiresAt || "0");
-const refresh_token: string = process.env.refreshToken || "";
-const id_token: string = process.env.idToken || "";
+const refreshToken: string = process.env.refreshToken || "";
 
-const youtubeService = new YoutubeService(client, {
-  access_token,
-  expiry_date,
-  refresh_token,
-  id_token,
-});
+const youtubeService = new YoutubeService(client, refreshToken);
 
 const stream = fs.createReadStream("./temp/1e56f624-c929-4d5e-83f0-dc4b11356f43.mp4");
 

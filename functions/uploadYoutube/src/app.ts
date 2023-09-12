@@ -15,16 +15,15 @@ export interface VideoMetadata {
   description: string;
 }
 
+export interface YoutubeCredentials {
+  userId: string;
+  refreshToken: string;
+}
+
 export interface UploadRequest {
   bucket: string;
   key: string;
-  auth: {
-    userId: string;
-    idToken: string;
-    access_token: string;
-    refreshToken: string;
-    expiresAt: number;
-  };
+  auth: YoutubeCredentials;
   metadata: VideoMetadata;
 }
 
@@ -44,10 +43,10 @@ export const lambdaHandler: Handler = async (request: UploadRequest): Promise<Up
   const s3Service = new S3Service(request.bucket);
 
   const client = {
-    clientId: process.env.clientId ?? "",
-    clientSecret: process.env.clientSecret ?? "",
+    clientId: process.env.YOUTUBE_CLIENT_ID ?? "",
+    clientSecret: process.env.YOUTUBE_CLIENT_SECRET ?? "",
   };
-  const youtubeService = new YoutubeService(client, request.auth);
+  const youtubeService = new YoutubeService(client, request.auth.refreshToken);
 
   const filePath = await s3Service.download(request.key, TEMP_DIR);
   const videoStream = fs.createReadStream(filePath);

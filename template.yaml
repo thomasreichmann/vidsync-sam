@@ -21,6 +21,7 @@ Resources:
         ConcatenateVideoFunctionArn: !GetAtt ConcatenateVideo.Arn
         PreProcessFunctionArn: !GetAtt PreProcess.Arn
         CurateFunctionArn: !GetAtt Curate.Arn
+        UploadYoutubeFunctionArn: !GetAtt UploadYoutube.Arn
         GenerateMetadataFunctionArn: !GetAtt GenerateMetadata.Arn
       Role: !GetAtt VideoProcessingStateMachineRole.Arn
       Events:
@@ -29,6 +30,23 @@ Resources:
           Properties:
             Path: /state/start
             Method: get
+
+  UploadYoutube:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      EphemeralStorage:
+        Size: 2048
+      Environment:
+        Variables:
+          YOUTUBE_CLIENT_ID: "{{resolve:ssm:/vidsync/youtube/id:1}}"
+          YOUTUBE_CLIENT_SECRET: "{{resolve:ssm:/vidsync/youtube/token:1}}"
+    Metadata:
+      DockerContext: ./functions/uploadYoutube
+      Dockerfile: Dockerfile
 
   GenerateMetadata:
     Type: AWS::Serverless::Function
@@ -139,16 +157,4 @@ Resources:
                   - !GetAtt PreProcess.Arn
                   - !GetAtt Curate.Arn
                   - !GetAtt GenerateMetadata.Arn
-# Outputs:
-# # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-# # Find out more about other implicit resources you can reference within SAM
-# # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-# HelloWorldApi:
-#   Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-#   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-# HelloWorldFunction:
-#   Description: "Hello World Lambda Function ARN"
-#   Value: !GetAtt HelloWorldFunction.Arn
-# HelloWorldFunctionIamRole:
-#   Description: "Implicit IAM Role created for Hello World function"
-#   Value: !GetAtt HelloWorldFunctionRole.Arn
+                  - !GetAtt UploadYoutube.Arn

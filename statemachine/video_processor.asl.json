@@ -67,6 +67,18 @@
         "infos.$": "$.CurateOutput",
         "titleTemplate.$": "$.titleTemplate"
       },
+      "Next": "UploadYoutube",
+      "ResultPath": "$.GenerateMetadataOutput"
+    },
+    "UploadYoutube": {
+      "Type": "Task",
+      "Resource": "${UploadYoutubeFunctionArn}",
+      "Parameters": {
+        "bucket.$": "$.bucket",
+        "key.$": "$.ConcatenateOutput",
+        "auth.$": "$.auth",
+        "metadata.$": "$.GenerateMetadataOutput"
+      },
       "End": true
     }
   }
