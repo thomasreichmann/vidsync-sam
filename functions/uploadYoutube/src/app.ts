@@ -16,20 +16,34 @@ export interface VideoMetadata {
 }
 
 export interface YoutubeCredentials {
-  userId: string;
-  refreshToken: string;
+  userId?: string;
+  refreshToken?: string;
 }
 
 export interface UploadRequest {
   bucket: string;
   key: string;
-  auth: YoutubeCredentials;
+  auth?: YoutubeCredentials;
   metadata: VideoMetadata;
 }
 
 export interface UploadResponse {}
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
+
+function validateAuth(auth?: YoutubeCredentials): asserts auth is Required<YoutubeCredentials> {
+  if (!auth) {
+    throw new BadRequestError("Auth object is missing.");
+  }
+
+  if (!auth.refreshToken) {
+    throw new BadRequestError("Auth object is missing refresh token.");
+  }
+
+  if (!auth.userId) {
+    throw new BadRequestError("Auth object is missing userId.");
+  }
+}
 
 function validateRequest(request: UploadRequest): asserts request is Required<UploadRequest> {
   if (!request) {
@@ -39,6 +53,7 @@ function validateRequest(request: UploadRequest): asserts request is Required<Up
 
 export const lambdaHandler: Handler = async (request: UploadRequest): Promise<UploadResponse> => {
   validateRequest(request);
+  validateAuth(request.auth);
 
   const s3Service = new S3Service(request.bucket);
 
