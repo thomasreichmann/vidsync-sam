@@ -17,12 +17,12 @@ export interface CreateScheduleRequest {
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
 function validateRequest(request: CreateScheduleRequest) {
-  const hourRegex = /([0-1]?[0-9]|2[0-3])/;
+  const hourRegex = /^([0-1]?[0-9]|2[0-3])$/;
   if (!request.time.hours.match(hourRegex)) {
     throw new BadRequestError("Invalid hours format");
   }
 
-  const minuteRegex = /[0-5]?[0-9]/;
+  const minuteRegex = /^[0-5]?[0-9]$/;
   if (!request.time.minutes.match(minuteRegex)) {
     throw new BadRequestError("Invalid minutes format");
   }
