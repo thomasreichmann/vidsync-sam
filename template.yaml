@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aws/serverless-application-model/main/samtranslator/schema/schema.json
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
@@ -13,7 +14,7 @@ Globals:
 
 Resources:
   VideoProcessingStateMachine:
-    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Type: AWS::Serverless::StateMachine
     Properties:
       DefinitionUri: statemachine/video_processor.asl.json
       DefinitionSubstitutions:
@@ -30,6 +31,27 @@ Resources:
           Properties:
             Path: /state/start
             Method: get
+
+  ChannelScheduleGroup:
+    Type: AWS::Scheduler::ScheduleGroup
+    Properties:
+      Name: ChannelGroup
+
+  CreateSchedule:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          TARGET_ARN: !GetAtt VideoProcessingStateMachine.Arn
+          ROLE_ARN: !GetAtt CreateScheduleRole.Arn
+          GROUP_NAME: !Ref ChannelScheduleGroup
+    Metadata:
+      DockerContext: ./functions/createSchedule
+      Dockerfile: Dockerfile
 
   UploadYoutube:
     Type: AWS::Serverless::Function
@@ -158,3 +180,30 @@ Resources:
                   - !GetAtt Curate.Arn
                   - !GetAtt GenerateMetadata.Arn
                   - !GetAtt UploadYoutube.Arn
+
+  CreateScheduleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ManageEventBridgeAndStartStepFunctionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - events:PutRule
+                  - events:PutTargets
+                  - events:DeleteRule
+                  - events:RemoveTargets
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: !GetAtt VideoProcessingStateMachine.Arn
