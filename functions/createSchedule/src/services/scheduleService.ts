@@ -2,6 +2,7 @@ import {
   CreateScheduleCommand,
   CreateScheduleCommandInput,
   GetScheduleCommand,
+  ResourceNotFoundException,
   ScheduleState,
   UpdateScheduleCommand,
   UpdateScheduleCommandInput,
@@ -30,9 +31,18 @@ export interface ScheduleTime {
 export default class ScheduleService {
   async getSchedule(name: string, groupName: string) {
     const command = new GetScheduleCommand({ Name: name, GroupName: groupName });
-    const response = await scheduler.send(command);
 
-    return response;
+    try {
+      const response = await scheduler.send(command, {});
+
+      return response;
+    } catch (error: any) {
+      if (error instanceof ResourceNotFoundException) {
+        return undefined;
+      } else {
+        throw error;
+      }
+    }
   }
 
   async createSchedule(params: CreateScheduleParams) {
@@ -44,9 +54,9 @@ export default class ScheduleService {
 
   private async getCreateCommand(params: CreateScheduleParams) {
     const commandInput: UpdateOrCreateCommandInput = {
-      FlexibleTimeWindow: undefined,
+      FlexibleTimeWindow: { Mode: "OFF" },
       Name: params.name,
-      ScheduleExpression: `${params.time.minutes} ${params.time.hours} * * ? *`,
+      ScheduleExpression: `cron(${params.time.minutes} ${params.time.hours} * * ? *)`,
       GroupName: params.groupName,
       Target: {
         Arn: params.targetArn,
@@ -57,7 +67,7 @@ export default class ScheduleService {
 
     const schedule = await this.getSchedule(params.name, params.groupName);
     let command: UpdateScheduleCommand | CreateScheduleCommand;
-    if (schedule.Arn) {
+    if (schedule?.Arn) {
       command = new UpdateScheduleCommand(commandInput);
     } else {
       command = new CreateScheduleCommand(commandInput);

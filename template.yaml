@@ -189,7 +189,9 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: lambda.amazonaws.com
+              Service:
+                - lambda.amazonaws.com
+                - events.amazonaws.com
             Action: sts:AssumeRole
       Policies:
         - PolicyName: ManageEventBridgeAndStartStepFunctionPolicy

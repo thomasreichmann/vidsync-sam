@@ -1,15 +1,22 @@
+import { ScheduleState } from "@aws-sdk/client-scheduler";
 import { Handler } from "aws-lambda";
 import { createErrorType } from "./lib/baseError.js";
-import ScheduleService, { CreateScheduleParams } from "./services/scheduleService.js";
+import ScheduleService, { CreateScheduleParams, ScheduleTime } from "./services/scheduleService.js";
 
 export interface CreateScheduleResponse {
   statusCode: number;
   arn?: string;
 }
 
+export interface CreateScheduleRequest {
+  name: string;
+  time: ScheduleTime;
+  state: ScheduleState;
+}
+
 const BadRequestError = createErrorType({ errorName: "bad-request" });
 
-function validateRequest(request: CreateScheduleParams) {
+function validateRequest(request: CreateScheduleRequest) {
   const hourRegex = /([0-1]?[0-9]|2[0-3])/;
   if (!request.time.hours.match(hourRegex)) {
     throw new BadRequestError("Invalid hours format");
@@ -19,19 +26,20 @@ function validateRequest(request: CreateScheduleParams) {
   if (!request.time.minutes.match(minuteRegex)) {
     throw new BadRequestError("Invalid minutes format");
   }
-
-  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  if (!`${request.time.hours}:${request.time.minutes}`.match(timeRegex)) {
-    throw new BadRequestError("Invalid time format");
-  }
 }
 
-export const lambdaHandler: Handler = async (request: CreateScheduleParams): Promise<any> => {
+export const lambdaHandler: Handler = async (request: CreateScheduleRequest): Promise<any> => {
   validateRequest(request);
 
   const scheduleService = new ScheduleService();
 
-  const schedule = await scheduleService.createSchedule(request);
+  const input: CreateScheduleParams = {
+    ...request,
+    targetArn: process.env.TARGET_ARN!,
+    roleArn: process.env.ROLE_ARN!,
+    groupName: process.env.GROUP_NAME!,
+  };
+  const schedule = await scheduleService.createSchedule(input);
 
   return {
     statusCode: schedule.$metadata.httpStatusCode ?? 500,
