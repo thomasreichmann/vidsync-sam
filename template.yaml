@@ -153,6 +153,17 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaSchedulerPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - scheduler:GetSchedule
+                  - scheduler:PutSchedule
+                  - scheduler:UpdateSchedule
+                Resource: "*"
 
   VideoProcessingStateMachineRole:
     Type: AWS::IAM::Role
