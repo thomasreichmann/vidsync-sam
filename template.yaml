@@ -163,7 +163,12 @@ Resources:
                   - scheduler:GetSchedule
                   - scheduler:PutSchedule
                   - scheduler:UpdateSchedule
+                  - scheduler:CreateSchedule
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/sam-video-sync-test-CreateScheduleRole-*
 
   VideoProcessingStateMachineRole:
     Type: AWS::IAM::Role
@@ -202,7 +207,7 @@ Resources:
             Principal:
               Service:
                 - lambda.amazonaws.com
-                - events.amazonaws.com
+                - scheduler.amazonaws.com
             Action: sts:AssumeRole
       Policies:
         - PolicyName: ManageEventBridgeAndStartStepFunctionPolicy
