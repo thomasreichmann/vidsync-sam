@@ -1,6 +1,5 @@
 import "dotenv/config";
-import { lambdaHandler } from "./src/app.js";
-import { CreateScheduleParams } from "./src/services/scheduleService.js";
+import { CreateScheduleRequest, lambdaHandler } from "./src/app.js";
 
 const context = {
   callbackWaitsForEmptyEventLoop: false,
@@ -25,12 +24,9 @@ const context = {
   },
 };
 
-const request: CreateScheduleParams = {
-  targetArn: process.env.TARGET_ARN!,
+const request: CreateScheduleRequest = {
   name: "64604d383306f6c0a3561d19",
-  groupName: process.env.GROUP_NAME!,
   time: { hours: "12", minutes: "0" },
-  roleArn: process.env.ROLE_ARN!,
   state: "ENABLED",
 };
 
