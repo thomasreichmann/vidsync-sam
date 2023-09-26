@@ -21,7 +21,7 @@ resolve_s3 = true
 resolve_image_repos = true
 s3_prefix = "sam-video-sync-test"
 region = "us-east-1"
-disable_rollback = true
+disable_rollback = false
 
 [default.package.parameters]
 resolve_s3 = true
