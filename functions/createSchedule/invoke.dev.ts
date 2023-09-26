@@ -30,8 +30,7 @@ const payload = {
   bucket: "vidsync-compiler",
   auth: {
     userId: "644f06704ca5807da7af24fb",
-    refreshToken:
-      "1//0huouM9Uk5-AACgYIARAAGBESNwF-L9Ir4g_0_nIRl2X2a7fkbX5KMOKcDqDZn7JiyPC7lzI_fhFg_Lk6J0q8MOuiRjUYcmb6HS0",
+    refreshToken: process.env.youtubeRefreshToken,
   },
   languages: ["en"],
   titleTemplate: "This is a custom title: {0}",
