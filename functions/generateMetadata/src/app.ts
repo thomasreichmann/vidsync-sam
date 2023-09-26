@@ -3,9 +3,12 @@ import { TITLE_TEMPLATE } from "./config.js";
 import { createErrorType } from "./lib/baseError.js";
 import MetadataService from "./services/metadataService.js";
 
+export type PrivacyStatus = "public" | "private";
+
 export interface MetadataRequest {
   infos?: VideoInfo[];
   titleTemplate?: string;
+  privacyStatus: PrivacyStatus;
 }
 
 export interface VideoInfo {
@@ -20,6 +23,7 @@ export interface VideoInfo {
 export interface MetadataResponse {
   title: string;
   description: string;
+  privacyStatus: PrivacyStatus;
 }
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
@@ -39,5 +43,10 @@ export const lambdaHandler: Handler = async (request: MetadataRequest): Promise<
 
   const metadataService = new MetadataService();
 
-  return metadataService.generateMetadata(request.infos, request.titleTemplate ?? TITLE_TEMPLATE);
+  const generatedMetadata = metadataService.generateMetadata(request.infos, request.titleTemplate ?? TITLE_TEMPLATE);
+
+  return {
+    ...generatedMetadata,
+    privacyStatus: request.privacyStatus,
+  };
 };

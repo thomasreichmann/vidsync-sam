@@ -12,6 +12,7 @@ export interface CreateScheduleRequest {
   name: string;
   time: ScheduleTime;
   state: ScheduleState;
+  payload: any;
 }
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });

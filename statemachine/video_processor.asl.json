@@ -65,7 +65,8 @@
       "Resource": "${GenerateMetadataFunctionArn}",
       "Parameters": {
         "infos.$": "$.CurateOutput",
-        "titleTemplate.$": "$.titleTemplate"
+        "titleTemplate.$": "$.titleTemplate",
+        "privacyStatus.$": "$.privacyStatus"
       },
       "Next": "UploadYoutube",
       "ResultPath": "$.GenerateMetadataOutput"

@@ -24,13 +24,35 @@ const context = {
   },
 };
 
-const request: CreateScheduleRequest = {
-  name: "64604d383306f6c0a3561d19",
-  time: { hours: "12", minutes: "0" },
-  state: "ENABLED",
+const payload = {
+  quantity: 10,
+  gameIds: ["21779", "516575", "29307"],
+  bucket: "vidsync-compiler",
+  auth: {
+    userId: "644f06704ca5807da7af24fb",
+    refreshToken:
+      "1//0huouM9Uk5-AACgYIARAAGBESNwF-L9Ir4g_0_nIRl2X2a7fkbX5KMOKcDqDZn7JiyPC7lzI_fhFg_Lk6J0q8MOuiRjUYcmb6HS0",
+  },
+  languages: ["en"],
+  titleTemplate: "This is a custom title: {0}",
+  preProcessSettings: {
+    videoCodec: "libx264",
+    videoBitrate: "6000",
+    videoPreset: "ultrafast",
+  },
+  concatenateSettings: {
+    videoCodec: "libx264",
+    videoBitrate: "6000",
+    videoPreset: "ultrafast",
+  },
 };
 
-console.log(request);
+const request: CreateScheduleRequest = {
+  name: "644f06704ca5807da7af24fb",
+  time: { hours: "13", minutes: "46" },
+  state: "ENABLED",
+  payload,
+};
 
 const res = lambdaHandler(request, context, () => {});
 

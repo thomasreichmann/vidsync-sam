@@ -19,6 +19,8 @@ export interface CreateScheduleParams {
   targetArn: string;
   roleArn: string;
 
+  payload: any;
+
   state: ScheduleState;
 }
 
@@ -57,21 +59,20 @@ export default class ScheduleService {
       FlexibleTimeWindow: { Mode: "OFF" },
       Name: params.name,
       ScheduleExpression: `cron(${params.time.minutes} ${params.time.hours} * * ? *)`,
+
       GroupName: params.groupName,
       Target: {
         Arn: params.targetArn,
         RoleArn: params.roleArn,
+        Input: JSON.stringify(params.payload),
       },
       State: params.state,
     };
 
     const schedule = await this.getSchedule(params.name, params.groupName);
-    let command: UpdateScheduleCommand | CreateScheduleCommand;
-    if (schedule?.Arn) {
-      command = new UpdateScheduleCommand(commandInput);
-    } else {
-      command = new CreateScheduleCommand(commandInput);
-    }
+
+    // If the schedule exists, we update it otherwise we create a new one.
+    let command = schedule?.Arn ? new UpdateScheduleCommand(commandInput) : new CreateScheduleCommand(commandInput);
 
     return command;
   }

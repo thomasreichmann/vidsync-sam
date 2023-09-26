@@ -37,7 +37,7 @@ export default class YoutubeService {
           ...metadata,
         },
         status: {
-          privacyStatus: "private",
+          privacyStatus: metadata.privacyStatus,
           madeForKids: false,
           selfDeclaredMadeForKids: false,
         },

@@ -37,6 +37,7 @@ const request: UploadRequest = {
   metadata: {
     title: "test upload",
     description: "test upload",
+    privacyStatus: "private",
   },
 };
 

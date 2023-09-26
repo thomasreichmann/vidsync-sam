@@ -1,4 +1,4 @@
-import { MetadataResponse, VideoInfo } from "../app.js";
+import { VideoInfo } from "../app.js";
 import { MAX_YOUTUBE_DESCRIPTION_LENGTH, MAX_YOUTUBE_TITLE_LENGTH } from "../config.js";
 
 interface Timestamp {
@@ -6,8 +6,13 @@ interface Timestamp {
   seconds: number;
 }
 
+export interface GeneratedMetadata {
+  title: string;
+  description: string;
+}
+
 export default class MetadataService {
-  generateMetadata(infos: VideoInfo[], titleTemplate: string): MetadataResponse {
+  generateMetadata(infos: VideoInfo[], titleTemplate: string): GeneratedMetadata {
     const title = this.generateTitle(infos, titleTemplate);
     const description = this.generateDescription(infos);
 

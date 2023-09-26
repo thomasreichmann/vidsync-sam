@@ -10,9 +10,12 @@ const IS_LAMBDA_ENVIRONMENT = !!process.env.AWS_EXECUTION_ENV;
 const ROOT_DIR = IS_LAMBDA_ENVIRONMENT ? os.tmpdir() : ".";
 const TEMP_DIR = path.join(ROOT_DIR, "temp");
 
+export type PrivacyStatus = "public" | "private";
+
 export interface VideoMetadata {
   title: string;
   description: string;
+  privacyStatus: PrivacyStatus;
 }
 
 export interface YoutubeCredentials {
