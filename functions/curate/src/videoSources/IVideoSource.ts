@@ -23,6 +23,7 @@ export interface VideoResponse {
   downloadUrl: string;
 
   durationSeconds: number;
+  views: number;
 }
 
 export default interface IVideoSource {

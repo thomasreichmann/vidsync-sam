@@ -9,4 +9,4 @@ COPY . .
 RUN npm ci && npm run build
 
 # Set the CMD to your handler (using the compiled JavaScript)
-CMD [ "dist/src/app.lambdaHandler"]
+CMD [ "dist/app.lambdaHandler"]

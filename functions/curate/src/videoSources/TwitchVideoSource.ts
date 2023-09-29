@@ -23,11 +23,12 @@ export default class TwitchVideoSource implements IVideoSource {
     const videoResponses: VideoResponse[] = clips.map((clip) => {
       return {
         title: clip.title,
-        creatorName: clip.creatorDisplayName,
-        creatorUrl: `${this.baseChannelUrl}/${clip.creatorDisplayName}`,
+        creatorName: clip.broadcasterDisplayName,
+        creatorUrl: `${this.baseChannelUrl}/${clip.broadcasterDisplayName}`,
         downloadUrl: this.generateDownloadUrl(clip),
         originalUrl: clip.url,
         durationSeconds: clip.duration,
+        views: clip.views,
       };
     });
 
