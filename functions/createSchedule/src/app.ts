@@ -2,6 +2,7 @@ import { ScheduleState } from "@aws-sdk/client-scheduler";
 import { Handler } from "aws-lambda";
 import { createErrorType } from "./lib/baseError.js";
 import ScheduleService, { CreateScheduleParams, ScheduleTime } from "./services/scheduleService.js";
+import VideoProcessingPayload from "./types/videoProcessingPayload.js";
 
 export interface CreateScheduleResponse {
   statusCode: number;
@@ -12,7 +13,7 @@ export interface CreateScheduleRequest {
   name: string;
   time: ScheduleTime;
   state: ScheduleState;
-  payload: any;
+  payload: VideoProcessingPayload | any;
 }
 
 const BadRequestError = createErrorType({ errorName: "bad-request" });
