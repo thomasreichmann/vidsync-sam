@@ -3,6 +3,7 @@ import { MAX_YOUTUBE_DESCRIPTION_LENGTH, MAX_YOUTUBE_TITLE_LENGTH } from "../con
 
 interface Timestamp {
   name: string;
+  views: number;
   seconds: number;
 }
 
@@ -52,6 +53,7 @@ export default class MetadataService {
 
       return {
         name: info.creatorName,
+        views: info.views,
         seconds,
       };
     });
@@ -63,7 +65,7 @@ export default class MetadataService {
 
       timedChapters += `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")} ${
         timestamp.name
-      }\n`;
+      } - ${timestamp.views} views\n`;
     }
 
     return timedChapters;

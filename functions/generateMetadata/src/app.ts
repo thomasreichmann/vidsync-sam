@@ -18,6 +18,7 @@ export interface VideoInfo {
   downloadUrl: string;
   originalUrl: string;
   durationSeconds: number;
+  views: number;
 }
 
 export interface MetadataResponse {
